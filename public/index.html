@@ -166,7 +166,8 @@ main{max-width:1400px;margin:0 auto;padding-block:20px 60px}
 .def{min-width:0}
 .def .fa{font-family:var(--display);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:.4px;line-height:1.2;margin:0 0 4px;color:var(--fg)}
 .def .dt{font-size:13px;color:var(--muted);white-space:pre-line;margin:0 0 10px}
-.def .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12.5px;margin:0;padding-top:8px;border-top:1px solid var(--line)}
+.def .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12.5px;margin:0}
+.def .dt+.kv{padding-top:8px;border-top:1px solid var(--line)}
 .def .kv div{display:contents}
 .def .kv dt{font-weight:700;font-size:12px;color:var(--faint);white-space:nowrap}
 .def .kv dd{margin:0;white-space:pre-line;color:var(--fg);font-variant-numeric:tabular-nums}
@@ -286,11 +287,17 @@ sup.d{font-size:10.5px;margin-left:3px;vertical-align:4px}
 
 /* KPI trend */
 .trend{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px}
+.def>.trend:first-child{margin-top:0;padding-top:0;border-top:0}
 .trend.ro{font-size:12px}
 .trend-h{font-weight:700;font-size:12px;color:var(--faint);margin-bottom:6px}
-.spark{display:block;color:var(--muted);overflow:visible;margin-bottom:6px}
+.spark{display:block;width:100%;max-width:380px;height:auto;color:var(--muted);overflow:visible;margin-bottom:8px}
+.spark .axis{stroke:var(--line-strong);stroke-width:1}
+.spark .ref{stroke:var(--faint);stroke-width:1;stroke-dasharray:4 3}
+.spark .lbl{fill:var(--faint);font-size:11px;font-weight:700}
+.spark .val{fill:var(--fg);font-size:12px;font-weight:800}
 .spark circle{fill:var(--muted);stroke:var(--surface-2);stroke-width:2}
 .spark circle.last{fill:var(--orange)}
+.spark circle.hit{fill:transparent;stroke:none}
 .trend-v{display:flex;flex-wrap:wrap;gap:4px 12px;font-variant-numeric:tabular-nums}
 .trend-v em{font-style:normal;color:var(--faint);margin-right:2px}
 
@@ -618,11 +625,25 @@ function kpiTrend(i){
   if(!pts.length) return `<div class="trend ro">No KPI actuals recorded yet. Add one with the ${mlabel(S.month)} update.</div>`;
   const nums=pts.filter(p=>p.v!=null);
   let svg='';
-  if(nums.length>=2){
-    const W=200,H=44,P=6; const lo=Math.min(...nums.map(p=>p.v)), hi=Math.max(...nums.map(p=>p.v)); const span=hi-lo||1;
-    const x=n=>P+n*(W-2*P)/(nums.length-1), y=v=>H-P-(v-lo)*(H-2*P)/span;
-    const d=nums.map((p,n)=>`${n?'L':'M'}${x(n).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
-    svg=`<svg class="spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="KPI actuals by month"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${nums.map((p,n)=>`<circle cx="${x(n).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="4" class="${n===nums.length-1?'last':''}"><title>${esc(p.l)}: ${esc(p.raw)}</title></circle>`).join('')}</svg>`;
+  if(nums.length){
+    // Plotted across the whole financial year, so even one month has a place and the line grows as months are added.
+    const W=340,H=100,L=8,R=58,T=12,B=22;
+    const base=/^\s*-?\d+(?:\.\d+)?\s*%?\s*$/.test(i.baseline||'') ? kpiNum(i.baseline) : null;
+    const vals=nums.map(p=>p.v).concat(base!=null?[base]:[]);
+    let lo=Math.min(...vals), hi=Math.max(...vals); const pad=(hi-lo)*0.15 || Math.abs(hi)*0.1 || 1; lo-=pad; hi+=pad;
+    const idx=k=>MONTHS.findIndex(m=>m.k===k);
+    const x=k=>L+idx(k)*(W-L-R)/(MONTHS.length-1), y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+    const last=nums[nums.length-1];
+    const line=nums.length>1 ? `<path d="${nums.map((p,n)=>`${n?'L':'M'}${x(p.k).toFixed(1)},${y(p.v).toFixed(1)}`).join('')}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : '';
+    svg=`<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="KPI actuals by month, ${esc(MONTHS[0].l)} to ${esc(MONTHS[MONTHS.length-1].l)}">
+      <line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" class="axis"/>
+      ${MONTHS.map(m=>`<line x1="${x(m.k).toFixed(1)}" x2="${x(m.k).toFixed(1)}" y1="${H-B}" y2="${H-B+3}" class="axis"/>`).join('')}
+      <text x="${L}" y="${H-5}" class="lbl">${esc(MONTHS[0].l)}</text><text x="${W-R}" y="${H-5}" class="lbl" text-anchor="end">${esc(MONTHS[MONTHS.length-1].l)}</text>
+      ${base!=null?`<line x1="${L}" x2="${W-R}" y1="${y(base).toFixed(1)}" y2="${y(base).toFixed(1)}" class="ref"/><text x="${W-R+6}" y="${(y(base)+4).toFixed(1)}" class="lbl">S25 ${esc(i.baseline.trim())}</text>`:''}
+      ${line}
+      ${nums.map(p=>`<g><circle cx="${x(p.k).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="4" class="${p===last?'last':''}"/><circle cx="${x(p.k).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="11" class="hit"><title>${esc(p.l)}: ${esc(p.raw)}</title></circle></g>`).join('')}
+      <text x="${(x(last.k)+8).toFixed(1)}" y="${(y(last.v)+4).toFixed(1)}" class="val">${esc(last.raw)}</text>
+    </svg>`;
   }
   return `<div class="trend"><div class="trend-h">KPI actuals</div>${svg}<div class="trend-v">${pts.map(p=>`<span><em>${esc(p.l)}</em> ${esc(p.raw)}</span>`).join('')}</div></div>`;
 }
@@ -665,7 +686,7 @@ function renderBase(base){
       ${open?`<div class="it-body">
         <div class="def">
           ${detail?`<p class="dt">${esc(detail)}</p>`:''}
-          <dl class="kv">${i.kpi?`<div><dt>KPI</dt><dd>${esc(i.kpi)}</dd></div>`:''}${i.baseline?`<div><dt>S25 baseline</dt><dd>${esc(i.baseline)}</dd></div>`:''}</dl>
+          ${i.kpi||i.baseline?`<dl class="kv">${i.kpi?`<div><dt>KPI</dt><dd>${esc(i.kpi)}</dd></div>`:''}${i.baseline?`<div><dt>S25 baseline</dt><dd>${esc(i.baseline)}</dd></div>`:''}</dl>`:''}
           ${kpiTrend(i)}
         </div>
         <div class="upd">
