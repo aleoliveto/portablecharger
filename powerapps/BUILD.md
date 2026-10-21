@@ -75,7 +75,8 @@ Anything else in that column is an example of what goes in it. **You don't enter
 |---|---|---|
 | Title | (already there) | Focus area, e.g. FIRST WAVE |
 | Key | Single line of text | Required + enforce unique values. **You type this** when adding an initiative: base code in lower case, dash, two digits, e.g. `lgw-03`. Never reuse one |
-| Base | Single line of text | Indexed. LGW, PMI, … |
+| Base | Single line of text | Indexed. LGW, PMI, … The app's list of bases comes from this column |
+| BaseName | Single line of text | Optional. e.g. London Gatwick. Fill it on at least one row per base |
 | Group | Single line of text | e.g. Focus based on Deep Dive |
 | Detail | Multiple lines, plain text | |
 | KPI | Multiple lines, plain text | |
@@ -187,16 +188,6 @@ cFaint  = ColorValue("#A4A4A2");
 cBg     = ColorValue("#F7F7F6");
 cLine   = ColorValue("#E3E3E1");
 
-tBases = Table(
-    {Code: "LGW", Name: "London Gatwick"},
-    {Code: "PMI", Name: "Palma de Mallorca"},
-    {Code: "NAP", Name: "Naples"},
-    {Code: "BHX", Name: "Birmingham"},
-    {Code: "NCE", Name: "Nice"},
-    {Code: "MAN", Name: "Manchester"},
-    {Code: "LIS", Name: "Lisbon"}
-);
-
 // Sep 26 (FY26 close-out) to Sep 27. Change the start date and count for FY28.
 tMonths = ForAll(Sequence(13),
     With({d: DateAdd(Date(2026, 9, 1), Value - 1, TimeUnit.Months)},
@@ -225,6 +216,12 @@ Set(varMonth, If(IsBlank(LookUp(tMonths, Key = Text(Today(), "yyyy-mm"))), "2026
 Set(varView, "NETWORK");
 Set(varFilter, "All");
 ClearCollect(colInits, Filter(Initiatives, Active = true));
+// Every base with at least one active initiative, A to Z. Name comes from BaseName, else the code.
+ClearCollect(colBases, SortByColumns(
+    AddColumns(Distinct(colInits, Base) As b,
+        Code, b.Value,
+        Name, Coalesce(LookUp(colInits, Base = b.Value && !IsBlank(BaseName)).BaseName, b.Value)),
+    Code));
 Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
 Concurrent(
     ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -257,9 +254,10 @@ Set(varView, "NETWORK")
 | `lblUser` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine` | Rectangle | 0 | 99 | 1366 | 1 | |
-| `galNav` | Gallery (horizontal, blank) | 10 | 56 | 1346 | 44 | |
-| `btnTab` | Button | 0 | 0 | 96 | 44 | `galNav` |
-| `recTabOn` | Rectangle | 14 | 40 | 68 | 4 | `galNav` |
+| `galNav` | Gallery (horizontal, blank) | 10 | 56 | 220 | 44 | |
+| `btnTab` | Button | 0 | 0 | 110 | 44 | `galNav` |
+| `recTabOn` | Rectangle | 14 | 40 | 82 | 4 | `galNav` |
+| `cmbBase` | Combo box | 250 | 60 | 280 | 36 | |
 | `lblNetTitle` | Label | 20 | 110 | 700 | 34 | |
 | `lblNetSub` | Label | 20 | 142 | 900 | 24 | |
 | `galKpi` | Gallery (horizontal, blank) | 20 | 174 | 1326 | 84 | |
@@ -371,16 +369,8 @@ Fill: cLine
 **`galNav`**
 
 ```
-Items:
-    Ungroup(
-        Table(
-            {t: ["NETWORK"]},
-            {t: RenameColumns(ShowColumns(tBases, Code), Code, Value)},
-            {t: ["BARRIERS"]}
-        ),
-        t
-    )
-TemplateSize: 96
+Items: ["NETWORK", "BARRIERS"]
+TemplateSize: 110
 TemplatePadding: 0
 ShowScrollbar: false
 ```
@@ -400,8 +390,7 @@ Size: 11
 FontWeight: FontWeight.Semibold
 OnSelect:
     Set(varView, ThisItem.Value);
-    Set(varFilter, "All");
-    Navigate(Switch(ThisItem.Value, "NETWORK", scrNetwork, "BARRIERS", scrBarriers, scrBase), ScreenTransition.None)
+    Navigate(If(ThisItem.Value = "NETWORK", scrNetwork, scrBarriers), ScreenTransition.None)
 ```
 
 **`recTabOn`** (in `galNav`)
@@ -409,6 +398,24 @@ OnSelect:
 ```
 Fill: cOrange
 Visible: varView = ThisItem.Value
+```
+
+**`cmbBase`**
+
+```
+Items: colBases
+DisplayFields: ["Code", "Name"]
+SearchFields: ["Code", "Name"]
+IsSearchable: true
+SelectMultiple: false
+InputTextPlaceholder: "Go to a base…"
+DefaultSelectedItems: Filter(colBases, Code = varView)
+OnChange:
+    If(!IsBlank(Self.Selected),
+        Set(varView, Self.Selected.Code);
+        Set(varFilter, "All");
+        Navigate(scrBase, ScreenTransition.None))
+BorderColor: If(LookUp(colBases, Code = varView, true), cOrange, cLine)
 ```
 
 **`lblNetTitle`**
@@ -423,7 +430,7 @@ Color: cInk
 **`lblNetSub`**
 
 ```
-Text: CountRows(tBases) & " bases · " & CountRows(colInits) & " initiatives · compared with " & MonthLabel(varPrev)
+Text: CountRows(colBases) & " bases · " & CountRows(colInits) & " initiatives · compared with " & MonthLabel(varPrev)
 Size: 10.5
 Color: cMuted
 ```
@@ -587,7 +594,7 @@ Align: Align.Center
 **`galBases`**
 
 ```
-Items: tBases
+Items: colBases
 TemplateSize: 42
 TemplatePadding: 0
 OnSelect:
@@ -839,7 +846,7 @@ OnSelect:
 
 ![scrBase](scrBase.png)
 
-The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those eight controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
+The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those nine controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
 
 | Control | Type | X | Y | W | H | Inside |
 |---|---|---|---|---|---|---|
@@ -850,9 +857,10 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `lblUser_1` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav_1` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine_1` | Rectangle | 0 | 99 | 1366 | 1 | |
-| `galNav_1` | Gallery (horizontal, blank) | 10 | 56 | 1346 | 44 | |
-| `btnTab_1` | Button | 0 | 0 | 96 | 44 | `galNav_1` |
-| `recTabOn_1` | Rectangle | 14 | 40 | 68 | 4 | `galNav_1` |
+| `galNav_1` | Gallery (horizontal, blank) | 10 | 56 | 220 | 44 | |
+| `btnTab_1` | Button | 0 | 0 | 110 | 44 | `galNav_1` |
+| `recTabOn_1` | Rectangle | 14 | 40 | 82 | 4 | `galNav_1` |
+| `cmbBase_1` | Combo box | 250 | 60 | 280 | 36 | |
 | `lblBaseTitle` | Label | 20 | 110 | 700 | 34 | |
 | `lblBaseSub` | Label | 20 | 142 | 900 | 24 | |
 | `galFilters` | Gallery (horizontal, blank) | 20 | 174 | 660 | 36 | |
@@ -944,16 +952,8 @@ Fill: cLine
 **`galNav_1`**
 
 ```
-Items:
-    Ungroup(
-        Table(
-            {t: ["NETWORK"]},
-            {t: RenameColumns(ShowColumns(tBases, Code), Code, Value)},
-            {t: ["BARRIERS"]}
-        ),
-        t
-    )
-TemplateSize: 96
+Items: ["NETWORK", "BARRIERS"]
+TemplateSize: 110
 TemplatePadding: 0
 ShowScrollbar: false
 ```
@@ -973,8 +973,7 @@ Size: 11
 FontWeight: FontWeight.Semibold
 OnSelect:
     Set(varView, ThisItem.Value);
-    Set(varFilter, "All");
-    Navigate(Switch(ThisItem.Value, "NETWORK", scrNetwork, "BARRIERS", scrBarriers, scrBase), ScreenTransition.None)
+    Navigate(If(ThisItem.Value = "NETWORK", scrNetwork, scrBarriers), ScreenTransition.None)
 ```
 
 **`recTabOn_1`** (in `galNav_1`)
@@ -984,10 +983,28 @@ Fill: cOrange
 Visible: varView = ThisItem.Value
 ```
 
+**`cmbBase_1`**
+
+```
+Items: colBases
+DisplayFields: ["Code", "Name"]
+SearchFields: ["Code", "Name"]
+IsSearchable: true
+SelectMultiple: false
+InputTextPlaceholder: "Go to a base…"
+DefaultSelectedItems: Filter(colBases, Code = varView)
+OnChange:
+    If(!IsBlank(Self.Selected),
+        Set(varView, Self.Selected.Code);
+        Set(varFilter, "All");
+        Navigate(scrBase, ScreenTransition.None))
+BorderColor: If(LookUp(colBases, Code = varView, true), cOrange, cLine)
+```
+
 **`lblBaseTitle`**
 
 ```
-Text: varView & " · " & LookUp(tBases, Code = varView).Name
+Text: varView & " · " & LookUp(colBases, Code = varView).Name
 Size: 18
 FontWeight: FontWeight.Bold
 ```
@@ -1502,7 +1519,7 @@ OnSelect:
 Set(varView, "BARRIERS")
 ```
 
-The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those eight controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
+The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those nine controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
 
 | Control | Type | X | Y | W | H | Inside |
 |---|---|---|---|---|---|---|
@@ -1513,9 +1530,10 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `lblUser_2` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav_2` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine_2` | Rectangle | 0 | 99 | 1366 | 1 | |
-| `galNav_2` | Gallery (horizontal, blank) | 10 | 56 | 1346 | 44 | |
-| `btnTab_2` | Button | 0 | 0 | 96 | 44 | `galNav_2` |
-| `recTabOn_2` | Rectangle | 14 | 40 | 68 | 4 | `galNav_2` |
+| `galNav_2` | Gallery (horizontal, blank) | 10 | 56 | 220 | 44 | |
+| `btnTab_2` | Button | 0 | 0 | 110 | 44 | `galNav_2` |
+| `recTabOn_2` | Rectangle | 14 | 40 | 82 | 4 | `galNav_2` |
+| `cmbBase_2` | Combo box | 250 | 60 | 280 | 36 | |
 | `lblBarTitle` | Label | 20 | 110 | 800 | 34 | |
 | `lblBarSub` | Label | 20 | 142 | 900 | 24 | |
 | `ddBarBase` | Drop down | 20 | 174 | 160 | 36 | |
@@ -1604,16 +1622,8 @@ Fill: cLine
 **`galNav_2`**
 
 ```
-Items:
-    Ungroup(
-        Table(
-            {t: ["NETWORK"]},
-            {t: RenameColumns(ShowColumns(tBases, Code), Code, Value)},
-            {t: ["BARRIERS"]}
-        ),
-        t
-    )
-TemplateSize: 96
+Items: ["NETWORK", "BARRIERS"]
+TemplateSize: 110
 TemplatePadding: 0
 ShowScrollbar: false
 ```
@@ -1633,8 +1643,7 @@ Size: 11
 FontWeight: FontWeight.Semibold
 OnSelect:
     Set(varView, ThisItem.Value);
-    Set(varFilter, "All");
-    Navigate(Switch(ThisItem.Value, "NETWORK", scrNetwork, "BARRIERS", scrBarriers, scrBase), ScreenTransition.None)
+    Navigate(If(ThisItem.Value = "NETWORK", scrNetwork, scrBarriers), ScreenTransition.None)
 ```
 
 **`recTabOn_2`** (in `galNav_2`)
@@ -1642,6 +1651,24 @@ OnSelect:
 ```
 Fill: cOrange
 Visible: varView = ThisItem.Value
+```
+
+**`cmbBase_2`**
+
+```
+Items: colBases
+DisplayFields: ["Code", "Name"]
+SearchFields: ["Code", "Name"]
+IsSearchable: true
+SelectMultiple: false
+InputTextPlaceholder: "Go to a base…"
+DefaultSelectedItems: Filter(colBases, Code = varView)
+OnChange:
+    If(!IsBlank(Self.Selected),
+        Set(varView, Self.Selected.Code);
+        Set(varFilter, "All");
+        Navigate(scrBase, ScreenTransition.None))
+BorderColor: If(LookUp(colBases, Code = varView, true), cOrange, cLine)
 ```
 
 **`lblBarTitle`**
@@ -1663,7 +1690,7 @@ Color: cMuted
 **`ddBarBase`**
 
 ```
-Items: Ungroup(Table({t: ["All"]}, {t: RenameColumns(ShowColumns(tBases, Code), Code, Value)}), t)
+Items: Ungroup(Table({t: ["All"]}, {t: RenameColumns(ShowColumns(colBases, Code), Code, Value)}), t)
 Default: "All"
 ```
 
@@ -1869,7 +1896,7 @@ FontWeight: FontWeight.Bold
 **`lblFbTitle`**
 
 ```
-Text: varView & " · " & LookUp(tBases, Code = varView).Name & " · " & MonthLabel(varMonth)
+Text: varView & " · " & LookUp(colBases, Code = varView).Name & " · " & MonthLabel(varMonth)
 Size: 18
 FontWeight: FontWeight.Bold
 ```
@@ -1965,5 +1992,6 @@ OnSelect:
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
 - **Editing initiatives:** add, rename or retire them straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
-- **A new base:** add a line to `tBases` in App.Formulas, then add its initiatives to the list.
+- **A new base:** add its initiatives to the Initiatives list, with BaseName filled on at least one. It appears in the base picker, the Network table and the Barriers filter the next time the app opens. No app change needed.
+- **Retiring a base:** set Active to No on its initiatives and it drops out of the picker and tables. Its history stays in the lists.
 - **FY28:** change `Date(2026, 9, 1)` in `tMonths`.
