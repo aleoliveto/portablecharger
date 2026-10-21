@@ -75,8 +75,7 @@ Anything else in that column is an example of what goes in it. **You don't enter
 |---|---|---|
 | Title | (already there) | Focus area, e.g. FIRST WAVE |
 | Key | Single line of text | Required + enforce unique values. **You type this** when adding an initiative: base code in lower case, dash, two digits, e.g. `lgw-03`. Never reuse one |
-| Base | Single line of text | Indexed. LGW, PMI, … The app's list of bases comes from this column |
-| BaseName | Single line of text | Optional. e.g. London Gatwick. Fill it on at least one row per base |
+| Base | Single line of text | Indexed. The three-letter code in capitals: LGW, PMI, … The app's list of bases comes from this column |
 | Group | Single line of text | e.g. Focus based on Deep Dive |
 | Detail | Multiple lines, plain text | |
 | KPI | Multiple lines, plain text | |
@@ -84,7 +83,7 @@ Anything else in that column is an example of what goes in it. **You don't enter
 | SortOrder | Number | (not "Order", which SharePoint reserves) |
 | Active | Yes/No | Default **Yes** |
 
-Add one row per base with Title **Base-wide**, for asks that don't belong to a specific initiative.
+Add one row per base with Title **Base-wide**, for asks that don't belong to a specific initiative. Key them `<base>-00`, e.g. `lgw-00`.
 
 ### Updates (one row per initiative per month)
 
@@ -188,6 +187,44 @@ cFaint  = ColorValue("#A4A4A2");
 cBg     = ColorValue("#F7F7F6");
 cLine   = ColorValue("#E3E3E1");
 
+// Names and regions for the base picker and tables. Bases appear in the app only once they
+// have an active initiative; a code missing here still works and shows as itself under "Other".
+tBaseInfo = Table(
+    {Code: "BFS", Name: "Belfast",            Region: "UK",          R: 1},
+    {Code: "BHX", Name: "Birmingham",         Region: "UK",          R: 1},
+    {Code: "BRS", Name: "Bristol",            Region: "UK",          R: 1},
+    {Code: "EDI", Name: "Edinburgh",          Region: "UK",          R: 1},
+    {Code: "GLA", Name: "Glasgow",            Region: "UK",          R: 1},
+    {Code: "LGW", Name: "London Gatwick",     Region: "UK",          R: 1},
+    {Code: "LPL", Name: "Liverpool",          Region: "UK",          R: 1},
+    {Code: "LTN", Name: "London Luton",       Region: "UK",          R: 1},
+    {Code: "MAN", Name: "Manchester",         Region: "UK",          R: 1},
+    {Code: "NCL", Name: "Newcastle",          Region: "UK",          R: 1},
+    {Code: "SEN", Name: "London Southend",    Region: "UK",          R: 1},
+    {Code: "AGP", Name: "Málaga",             Region: "Europe",      R: 2},
+    {Code: "ALC", Name: "Alicante",           Region: "Europe",      R: 2},
+    {Code: "AMS", Name: "Amsterdam",          Region: "Europe",      R: 2},
+    {Code: "BCN", Name: "Barcelona",          Region: "Europe",      R: 2},
+    {Code: "BER", Name: "Berlin",             Region: "Europe",      R: 2},
+    {Code: "BOD", Name: "Bordeaux",           Region: "Europe",      R: 2},
+    {Code: "CDG", Name: "Paris CDG",          Region: "Europe",      R: 2},
+    {Code: "FAO", Name: "Faro",               Region: "Europe",      R: 2},
+    {Code: "FCO", Name: "Rome Fiumicino",     Region: "Europe",      R: 2},
+    {Code: "LIN", Name: "Milan Linate",       Region: "Europe",      R: 2},
+    {Code: "LIS", Name: "Lisbon",             Region: "Europe",      R: 2},
+    {Code: "LYS", Name: "Lyon",               Region: "Europe",      R: 2},
+    {Code: "MXP", Name: "Milan Malpensa",     Region: "Europe",      R: 2},
+    {Code: "NAP", Name: "Naples",             Region: "Europe",      R: 2},
+    {Code: "NCE", Name: "Nice",               Region: "Europe",      R: 2},
+    {Code: "NTE", Name: "Nantes",             Region: "Europe",      R: 2},
+    {Code: "OPO", Name: "Porto",              Region: "Europe",      R: 2},
+    {Code: "ORY", Name: "Paris Orly",         Region: "Europe",      R: 2},
+    {Code: "PMI", Name: "Palma de Mallorca",  Region: "Europe",      R: 2},
+    {Code: "BSL", Name: "Basel-Mulhouse",     Region: "Switzerland", R: 3},
+    {Code: "GVA", Name: "Geneva",             Region: "Switzerland", R: 3},
+    {Code: "RAK", Name: "Marrakech",          Region: "Morocco",     R: 4}
+);
+
 // Sep 26 (FY26 close-out) to Sep 27. Change the start date and count for FY28.
 tMonths = ForAll(Sequence(13),
     With({d: DateAdd(Date(2026, 9, 1), Value - 1, TimeUnit.Months)},
@@ -216,12 +253,15 @@ Set(varMonth, If(IsBlank(LookUp(tMonths, Key = Text(Today(), "yyyy-mm"))), "2026
 Set(varView, "NETWORK");
 Set(varFilter, "All");
 ClearCollect(colInits, Filter(Initiatives, Active = true));
-// Every base with at least one active initiative, A to Z. Name comes from BaseName, else the code.
+// Every base with at least one active initiative: UK, Europe, Switzerland, Morocco, then A to Z.
 ClearCollect(colBases, SortByColumns(
     AddColumns(Distinct(colInits, Base) As b,
-        Code, b.Value,
-        Name, Coalesce(LookUp(colInits, Base = b.Value && !IsBlank(BaseName)).BaseName, b.Value)),
-    Code));
+        Code,   b.Value,
+        Name,   Coalesce(LookUp(tBaseInfo, Code = b.Value).Name, b.Value),
+        Region, Coalesce(LookUp(tBaseInfo, Code = b.Value).Region, "Other"),
+        R,      Coalesce(LookUp(tBaseInfo, Code = b.Value).R, 9)),
+    R, SortOrder.Ascending, Code, SortOrder.Ascending));
+Set(varRegion, "All");
 Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
 Concurrent(
     ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -266,16 +306,18 @@ Set(varView, "NETWORK")
 | `lblKpiL` | Label | 14 | 44 | 190 | 18 | `galKpi` |
 | `lblKpiD` | Label | 14 | 62 | 190 | 18 | `galKpi` |
 | `recBasesCard` | Rectangle | 20 | 270 | 880 | 332 | |
-| `lblNBase` | Label | 32 | 272 | 230 | 28 | |
-| `lblNUpdated` | Label | 262 | 272 | 80 | 28 | |
-| `lblNOnTrack` | Label | 342 | 272 | 76 | 28 | |
-| `lblNAtRisk` | Label | 418 | 272 | 76 | 28 | |
-| `lblNOffTrack` | Label | 494 | 272 | 76 | 28 | |
-| `lblNComplete` | Label | 570 | 272 | 76 | 28 | |
-| `lblNForBoard` | Label | 646 | 272 | 80 | 28 | |
-| `lblNBarriers` | Label | 726 | 272 | 80 | 28 | |
-| `lblNFeedback` | Label | 806 | 272 | 80 | 28 | |
-| `galBases` | Gallery (vertical, blank) | 20 | 302 | 880 | 294 | |
+| `galRegion` | Gallery (horizontal, blank) | 32 | 278 | 560 | 30 | |
+| `btnRegion` | Button | 0 | 0 | 104 | 30 | `galRegion` |
+| `lblNBase` | Label | 32 | 310 | 230 | 28 | |
+| `lblNUpdated` | Label | 262 | 310 | 80 | 28 | |
+| `lblNOnTrack` | Label | 342 | 310 | 76 | 28 | |
+| `lblNAtRisk` | Label | 418 | 310 | 76 | 28 | |
+| `lblNOffTrack` | Label | 494 | 310 | 76 | 28 | |
+| `lblNComplete` | Label | 570 | 310 | 76 | 28 | |
+| `lblNForBoard` | Label | 646 | 310 | 80 | 28 | |
+| `lblNBarriers` | Label | 726 | 310 | 80 | 28 | |
+| `lblNFeedback` | Label | 806 | 310 | 80 | 28 | |
+| `galBases` | Gallery (vertical, blank) | 20 | 338 | 880 | 258 | |
 | `lblBCode` | Label | 12 | 0 | 56 | 42 | `galBases` |
 | `lblBName` | Label | 68 | 0 | 170 | 42 | `galBases` |
 | `lblBUpdated` | Label | 242 | 0 | 80 | 42 | `galBases` |
@@ -502,6 +544,28 @@ BorderColor: cLine
 BorderThickness: 1
 ```
 
+**`galRegion`**
+
+```
+Items: ["All", "UK", "Europe", "Switzerland", "Morocco"]
+TemplateSize: 112
+TemplatePadding: 0
+ShowScrollbar: false
+```
+
+**`btnRegion`** (in `galRegion`)
+
+```
+Text: ThisItem.Value
+OnSelect: Set(varRegion, ThisItem.Value)
+Fill: If(Coalesce(varRegion, "All") = ThisItem.Value, cInk, Color.White)
+Color: If(Coalesce(varRegion, "All") = ThisItem.Value, Color.White, cInk)
+BorderColor: cLine
+BorderThickness: 1
+Size: 9.5
+Radius (all four): 15
+```
+
 **`lblNBase`**
 
 ```
@@ -594,7 +658,7 @@ Align: Align.Center
 **`galBases`**
 
 ```
-Items: colBases
+Items: Filter(colBases, Coalesce(varRegion, "All") = "All" || Region = varRegion)
 TemplateSize: 42
 TemplatePadding: 0
 OnSelect:
@@ -1992,6 +2056,6 @@ OnSelect:
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
 - **Editing initiatives:** add, rename or retire them straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
-- **A new base:** add its initiatives to the Initiatives list, with BaseName filled on at least one. It appears in the base picker, the Network table and the Barriers filter the next time the app opens. No app change needed.
+- **A new base:** add its initiatives to the Initiatives list, with the code in Base. It appears in the base picker, the Network table and the Barriers filter the next time the app opens. For its full name and region, add one line to `tBaseInfo` in App.Formulas. Without that line it still works and shows the code under "Other".
 - **Retiring a base:** set Active to No on its initiatives and it drops out of the picker and tables. Its history stays in the lists.
 - **FY28:** change `Date(2026, 9, 1)` in `tMonths`.
