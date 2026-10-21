@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIG BOARD Import</title>
+<style>
+:root{--bg:#f6f6f6;--card:#fff;--ink:#1a1a1a;--muted:#696D6F;--accent:#FF6600}
+@media (prefers-color-scheme:dark){:root{--bg:#121314;--card:#1d1f20;--ink:#eee;--muted:#a3a6a8}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;padding:32px 16px}
+main{max-width:560px;margin:0 auto;background:var(--card);border-radius:14px;padding:24px}
+h1{margin:0 0 8px;color:var(--accent);font-size:22px}
+p{color:var(--muted)}
+button{padding:10px 16px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+pre{white-space:pre-wrap;background:rgba(105,109,111,.12);padding:12px;border-radius:8px;min-height:1em}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Import data</h1>
+  <p>Load a <code>big-board-data-export-*.json</code> file into the board. Documents with the same id are overwritten; everything else is left alone. Take an <a href="/api/export">export</a> first if you want a backup.</p>
+  <p><input type="file" id="f" accept="application/json,.json"></p>
+  <p><button id="go" disabled>Import</button> <a href="/">Back to the board</a></p>
+  <pre id="out"></pre>
+</main>
+<script>
+const f=document.getElementById('f'), go=document.getElementById('go'), out=document.getElementById('out');
+let data=null;
+f.addEventListener('change', async () => {
+  data=null; go.disabled=true; out.textContent='';
+  try {
+    data=JSON.parse(await f.files[0].text());
+    out.textContent=['bases','initiatives','updates','feedback','barriers'].map(c=>c+': '+Object.keys(data[c]||{}).length).join('\n');
+    go.disabled=false;
+  } catch(e) { out.textContent='Not a valid JSON file: '+e.message; }
+});
+go.addEventListener('click', async () => {
+  go.disabled=true; out.textContent+='\n\nImporting…';
+  const res=await fetch('/api/import',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
+  const body=await res.json().catch(()=>({}));
+  out.textContent += res.ok ? `\nDone: ${body.written} documents written.` : `\nFailed: ${body.error||res.status}${res.status===401?' (sign in on the board first)':''}`;
+  go.disabled=false;
+});
+</script>
+</body>
+</html>

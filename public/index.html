@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+/* Minimal reset equivalent to the claude.ai artifact skeleton */
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<!--
+  BIG BOARD FY27 — Netlify build.
+  Shared state goes through window.claude.use("db"/"user"), supplied here by
+  /store.js: a thin adapter over the /api/* Netlify Function, which keeps every
+  document in Netlify Blobs behind a password login.
+-->
+<title>BIG BOARD FY27</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Nunito:wght@400;600;700&display=swap">
+<style>
+/* Layout: orange masthead with the month strip; base tabs beneath; one scrolling board per base,
+   grouped by source, each initiative a row with the month's update beside its definition. */
+:root{
+  /* easyJet palette: primary orange, secondary (dark orange / extra light orange / sky blue / grey), tertiary (sea blue / terracotta / green), with 40% tints */
+  --orange:#FF6600; --orange-80:#FF874A; --orange-40:#FFC299; --orange-soft:#FFF0E5;
+  --dark-orange:#FF4600; --dark-orange-40:#FFB599;
+  --xlight-orange:#FFAA00; --xlight-orange-40:#FFDD99;
+  --sky:#0AB0A5; --sky-40:#9DDBD3; --sky-10:#E6F6F4;
+  --grey:#696D6F; --grey-40:#A4A4A2; --grey-10:#F0F0EF;
+  --sea:#45DBEF; --sea-40:#B0EBF4; --sea-10:#EAF9FC;
+  --terracotta:#FF9275; --terracotta-40:#F9CDC2; --terracotta-10:#FFF0EC;
+  --ej-green:#42C620; --ej-green-40:#ADE1A0; --ej-green-10:#EEF8EA;
+  --bg:#F7F7F6; --surface:#FFFFFF; --surface-2:#F4F4F3; --line:#E3E3E1; --line-strong:#C8C8C5;
+  --fg:#1E1E1E; --muted:#696D6F; --faint:#A4A4A2;
+  /* RAG mapped onto brand */
+  --green:#2E9A12; --green-bg:var(--ej-green-40); --green-soft:var(--ej-green-10);
+  --amber:#B87400; --amber-bg:var(--xlight-orange-40); --amber-soft:#FFF5DD;
+  --red:#D63A00; --red-bg:var(--dark-orange-40); --red-soft:#FFEDE5;
+  --blue:#07857C; --blue-bg:var(--sky-40); --blue-soft:var(--sky-10);
+  --none-bg:var(--grey-10); --none-fg:var(--grey);
+  --shadow:0 1px 2px rgba(30,30,30,.05),0 6px 20px rgba(30,30,30,.06);
+  --display:"Oswald","Arial Narrow",Impact,sans-serif;
+  --body:"Nunito",Verdana,"Trebuchet MS",sans-serif;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --orange-soft:#3A2414; --sky-10:#12302D; --grey-10:#2B2B2A; --sea-10:#10303A; --terracotta-10:#3A2420; --ej-green-10:#1B3014;
+  --bg:#171716; --surface:#212120; --surface-2:#2A2A28; --line:#383836; --line-strong:#4C4C49;
+  --fg:#F1F1EE; --muted:#B4B6B6; --faint:#7F8283;
+  --green:#7EDB62; --green-bg:#24461A; --green-soft:#1B3014;
+  --amber:#FFC247; --amber-bg:#4A3810; --amber-soft:#332810;
+  --red:#FF8A66; --red-bg:#4C2213; --red-soft:#33190F;
+  --blue:#4FD4C9; --blue-bg:#124A45; --blue-soft:#12302D;
+  --none-bg:#2E2E2D; --none-fg:#A4A4A2;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --orange-soft:#3A2414; --sky-10:#12302D; --grey-10:#2B2B2A; --sea-10:#10303A; --terracotta-10:#3A2420; --ej-green-10:#1B3014;
+  --bg:#171716; --surface:#212120; --surface-2:#2A2A28; --line:#383836; --line-strong:#4C4C49;
+  --fg:#F1F1EE; --muted:#B4B6B6; --faint:#7F8283;
+  --green:#7EDB62; --green-bg:#24461A; --green-soft:#1B3014;
+  --amber:#FFC247; --amber-bg:#4A3810; --amber-soft:#332810;
+  --red:#FF8A66; --red-bg:#4C2213; --red-soft:#33190F;
+  --blue:#4FD4C9; --blue-bg:#124A45; --blue-soft:#12302D;
+  --none-bg:#2E2E2D; --none-fg:#A4A4A2;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--orange)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* masthead */
+.mast{background:var(--orange);color:#fff}
+.mast .inner{display:flex;flex-wrap:wrap;align-items:center;gap:10px 24px;padding-block:14px 12px;max-width:1400px;margin:0 auto}
+.brand{display:flex;align-items:baseline;gap:12px;flex:1 1 auto;min-width:0}
+.brand h1{font-family:var(--display);font-weight:600;font-size:30px;letter-spacing:.5px;text-transform:uppercase;margin:0;line-height:.9}
+.brand .fy{font-family:var(--display);font-weight:500;font-size:16px;text-transform:uppercase;letter-spacing:1.5px;opacity:.9}
+.brand .sub{font-size:12.5px;opacity:.92;flex-basis:100%;margin-top:2px}
+.months{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px;margin:0 -2px}
+.months::-webkit-scrollbar{display:none}
+.mbtn{flex:0 0 auto;border:0;border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font-weight:600;font-size:13px;white-space:nowrap;position:relative}
+.mbtn:hover{background:rgba(255,255,255,.26)}
+.mbtn.on{background:#fff;color:var(--dark-orange)}
+.mbtn.prior{opacity:.75}
+.mbtn .dot{position:absolute;top:3px;right:6px;width:6px;height:6px;border-radius:50%;background:#fff}
+.mbtn.on .dot{background:var(--orange)}
+.mbtn.future{opacity:.5}
+
+/* base nav */
+.nav{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.nav .inner{display:flex;gap:2px;overflow-x:auto;max-width:1400px;margin:0 auto;scrollbar-width:none}
+.nav .inner::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:0;background:none;padding:12px 14px 10px;font-family:var(--display);font-weight:500;font-size:15px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);border-bottom:3px solid transparent;display:flex;align-items:center;gap:7px}
+.tab:hover{color:var(--fg)}
+.tab.on{color:var(--fg);border-bottom-color:var(--orange)}
+.tab .cnt{font-family:var(--body);font-size:11px;font-weight:700;background:var(--surface-2);color:var(--muted);border-radius:999px;padding:1px 7px;letter-spacing:0}
+.tab .cnt.hot{background:var(--dark-orange-40);color:var(--red)}
+.tab .cnt.done{background:var(--ej-green-40);color:var(--green)}
+.tab.sep{margin-left:auto}
+
+main{max-width:1400px;margin:0 auto;padding-block:20px 60px}
+.banner{background:var(--orange-soft);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--muted);margin-bottom:16px}
+.banner strong{color:var(--fg)}
+.hidden{display:none!important}
+
+/* section heads */
+.phead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px;margin-bottom:14px}
+.phead h2{font-family:var(--display);font-weight:600;font-size:26px;text-transform:uppercase;letter-spacing:.5px;margin:0;line-height:1;text-wrap:balance}
+.phead h2 small{font-family:var(--body);font-weight:600;font-size:13px;text-transform:none;letter-spacing:0;color:var(--muted);display:block;margin-top:6px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:8px;padding:7px 12px;font-weight:700;font-size:13px;color:var(--fg)}
+.btn:hover{border-color:var(--grey)}
+.btn.primary{background:var(--orange);border-color:var(--orange);color:#fff}
+.btn.primary:hover{background:var(--dark-orange)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn[disabled]{opacity:.5;cursor:default}
+
+/* network grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.bcard{cursor:pointer;display:flex;flex-direction:column;gap:10px;transition:transform .12s}
+.bcard:hover{transform:translateY(-1px);border-color:var(--line-strong)}
+.bcard .top{display:flex;justify-content:space-between;align-items:baseline}
+.bcard .code{font-family:var(--display);font-size:24px;font-weight:600;letter-spacing:1px;color:var(--orange)}
+.bcard .name{color:var(--muted);font-size:12.5px}
+.ragbar{display:flex;height:10px;border-radius:4px;overflow:hidden;background:var(--surface-2)}
+.ragbar span{display:block;height:100%}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px;color:var(--muted)}
+.stat-row{display:flex;flex-direction:column;gap:1px;align-items:flex-start}
+.stat-row b{font-size:15px}
+.stat-row{background:var(--surface-2);border-radius:7px;padding:5px 9px}
+.stat-row.warn{background:var(--orange-soft);color:var(--dark-orange)}.stat-row.warn b{color:var(--dark-orange)}
+.stat-row.ok{background:var(--ej-green-10)}.stat-row.ok b{color:var(--green)}
+.stats b{color:var(--fg);font-variant-numeric:tabular-nums}
+.stat-row{display:flex;justify-content:space-between;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.green{background:var(--green-bg);color:var(--green)}
+.chip.amber{background:var(--amber-bg);color:var(--amber)}
+.chip.red{background:var(--red-bg);color:var(--red)}
+.chip.blue{background:var(--blue-bg);color:var(--blue)}
+.chip.grey{background:var(--grey-10);color:var(--grey)}
+.chip.none{background:var(--none-bg);color:var(--none-fg)}
+.chip.board{background:var(--orange);color:#fff}
+.chip.board::before{display:none}
+.net2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:16px}
+@media(max-width:900px){.net2{grid-template-columns:1fr}}
+.card h3{font-family:var(--display);font-weight:500;font-size:16px;text-transform:uppercase;letter-spacing:.8px;margin:0 0 10px;color:var(--muted)}
+.card h3 .n{color:var(--fg)}
+
+/* board (base view) */
+.group{margin-bottom:22px}
+.ghead{font-family:var(--display);font-weight:500;font-size:13px;letter-spacing:1.4px;text-transform:uppercase;color:var(--grey);padding:0 0 6px 2px;border-bottom:2px solid var(--orange-40);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.row{display:grid;grid-template-columns:minmax(220px,2fr) minmax(0,5fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.row{border-left:5px solid var(--line-strong)}
+.row.rag-green{border-left-color:var(--ej-green)}
+.row.rag-amber{border-left-color:var(--xlight-orange)}
+.row.rag-red{border-left-color:var(--dark-orange)}
+.row.rag-blue{border-left-color:var(--sky)}
+.row.needs .def{box-shadow:inset 0 3px 0 var(--orange)}
+@media(max-width:760px){.row{grid-template-columns:1fr}}
+.def{padding:12px 14px;border-right:1px solid var(--line);background:var(--surface-2);min-width:0}
+@media(max-width:760px){.def{border-right:0;border-bottom:1px solid var(--line)}}
+.def .fa{font-family:var(--display);font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.4px;line-height:1.15;margin:0 0 4px;color:var(--orange)}
+.def .dt{font-size:13px;color:var(--fg);white-space:pre-line;margin:0 0 8px}
+.def .kv{display:flex;flex-direction:column;gap:6px;font-size:12px;margin:0}
+.def .kv div{background:var(--sky-10);border-radius:7px;padding:5px 8px;border-left:3px solid var(--sky)}
+.def .kv dt{font-weight:700;letter-spacing:.8px;text-transform:uppercase;font-size:10px;color:var(--blue)}
+.def .kv dd{margin:0;white-space:pre-line;color:var(--fg);font-variant-numeric:tabular-nums}
+.upd{padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.upd .uhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.upd .uhead .when{font-size:11.5px;color:var(--faint);margin-left:auto}
+.upd .text{white-space:pre-wrap;font-size:13.5px;line-height:1.55;margin:0}
+.upd .text.empty{color:var(--faint);font-style:italic}
+.ft{font-size:13.5px;line-height:1.5;display:flex;flex-direction:column;gap:3px;margin:0}
+.ft .h{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--dark-orange);margin-top:8px;padding-bottom:2px;border-bottom:1px solid var(--orange-40);display:inline-block;align-self:flex-start}
+.ft .h:first-child{margin-top:0}
+.ft .h.done{color:var(--green);border-color:var(--ej-green-40)}
+.ft .h.next{color:#FFAA00;border-color:var(--xlight-orange-40)}
+.ft .h.issue{color:var(--red);border-color:var(--dark-orange-40)}
+.ft .b{display:flex;gap:7px;margin:0}
+.ft .b::before{content:"";flex:0 0 6px;height:6px;border-radius:50%;background:var(--orange-40);margin-top:8px}
+.ft .b.l2{padding-left:16px}
+.ft .b.l2::before{background:var(--grey-40);width:5px;height:5px;flex-basis:5px}
+.ft .p{margin:0;white-space:pre-wrap}
+details.prev .ft{color:var(--muted);margin-top:6px;border-left:2px solid var(--sea-40);padding-left:10px}
+details.prev .ft .h{color:var(--muted);border-color:var(--line)}
+.upd .barrier{background:var(--orange-soft);border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:8px 10px;font-size:13px}
+.upd .barrier b{font-family:var(--display);font-weight:500;text-transform:uppercase;letter-spacing:.8px;font-size:11.5px;color:var(--dark-orange);display:block;margin-bottom:2px}
+.upd .ufoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto}
+details.prev{font-size:13px}
+details.prev summary{cursor:pointer;color:var(--muted);font-weight:700;font-size:12px;list-style:none;display:inline-flex;align-items:center;gap:6px}
+details.prev summary::before{content:"▸";font-size:11px;transition:transform .15s}
+details.prev[open] summary::before{transform:rotate(90deg)}
+details.prev .text{color:var(--muted);margin-top:6px;border-left:2px solid var(--line);padding-left:10px}
+.clamp{max-height:9.5em;overflow:hidden;position:relative}
+.clamp::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2.5em;background:linear-gradient(to bottom,transparent,var(--surface))}
+.more{background:none;border:0;color:var(--dark-orange);font-weight:700;font-size:12px;padding:0;align-self:flex-start}
+
+/* feedback card */
+#fbcard{background:var(--sea-10);border-color:var(--sea-40)}
+#fbcard h3 .n{color:var(--fg)}
+#fbcard h3{color:#0E7F8F}
+.card.barriers{background:var(--terracotta-10);border-color:var(--terracotta-40)}
+.card.barriers h3{color:var(--dark-orange)}
+.card.asks h3{color:var(--dark-orange)}
+.card.notes{background:var(--orange-soft);border-color:var(--orange-40)}
+.card.notes h3{color:var(--dark-orange)}
+.fb{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:10px}
+@media(max-width:900px){.fb{grid-template-columns:1fr}}
+.fb label{display:block;font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+textarea,input[type=text],select{width:100%;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);padding:8px 10px;font-size:13.5px;line-height:1.5}
+textarea{min-height:110px;resize:vertical}
+textarea:disabled,input:disabled,select:disabled{background:var(--surface-2);color:var(--muted);border-color:var(--line)}
+.fbfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--faint);flex-wrap:wrap}
+
+/* barriers table */
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+th{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:2px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+td .b{font-family:var(--display);font-weight:600;letter-spacing:.8px}
+td select,td input{padding:5px 8px;font-size:12.5px}
+td .desc{white-space:pre-wrap}
+.status{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700}
+.status.open{background:var(--dark-orange-40);color:var(--red)}
+.status.board{background:var(--xlight-orange-40);color:var(--amber)}
+.status.resolved{background:var(--ej-green-40);color:var(--green)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters select{width:auto;padding:5px 28px 5px 9px}
+.empty{color:var(--faint);font-style:italic;padding:20px;text-align:center;border:1px dashed var(--line-strong);border-radius:var(--radius)}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(20,18,16,.45);display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;z-index:20;overflow:auto}
+.modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);width:min(760px,100%);padding:20px 22px 18px;display:flex;flex-direction:column;gap:14px}
+.modal h2{font-family:var(--display);font-weight:600;font-size:20px;text-transform:uppercase;letter-spacing:.5px;margin:0;line-height:1.1}
+.modal .ctx{font-size:12.5px;color:var(--muted);margin-top:4px}
+.field label{display:block;font-weight:700;font-size:12.5px;margin-bottom:5px;color:var(--muted)}
+.field .hint{font-size:12px;color:var(--faint);margin-top:4px}
+.ragpick{display:flex;flex-wrap:wrap;gap:6px}
+.ragpick button{border:1px solid var(--line-strong);background:var(--surface);border-radius:999px;padding:5px 12px;font-weight:700;font-size:12.5px;display:inline-flex;align-items:center;gap:6px}
+.ragpick button::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--faint)}
+.ragpick button[data-rag=green]::before{background:var(--ej-green)}
+.ragpick button[data-rag=amber]::before{background:var(--xlight-orange)}
+.ragpick button[data-rag=red]::before{background:var(--dark-orange)}
+.ragpick button[data-rag=blue]::before{background:var(--sky)}
+.ragpick button.on[data-rag=green]{background:var(--ej-green-40);border-color:var(--ej-green)}
+.ragpick button.on[data-rag=amber]{background:var(--xlight-orange-40);border-color:var(--xlight-orange)}
+.ragpick button.on[data-rag=red]{background:var(--dark-orange-40);border-color:var(--dark-orange)}
+.ragpick button.on[data-rag=blue]{background:var(--sky-40);border-color:var(--sky)}
+.ragpick button.on{border-color:var(--fg);background:var(--surface-2)}
+.modal .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.modal .foot .right{display:flex;gap:8px}
+.check{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}
+.check input{width:16px;height:16px;accent-color:var(--orange)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.two{grid-template-columns:1fr}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:700;font-size:13px;z-index:30;box-shadow:var(--shadow)}
+.ro{font-size:12px;color:var(--faint)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<header class="mast gutter">
+  <div class="inner">
+    <div class="brand">
+      <h1>BIG BOARD</h1>
+      <span class="fy">FY27 · Focus initiatives</span>
+      <span class="sub">Base teams update their initiatives each month. The board reviews, gives feedback and helps clear the barriers that are flagged.</span>
+    </div>
+    <div class="months" id="months" role="tablist" aria-label="Month"></div>
+  </div>
+</header>
+<nav class="nav gutter"><div class="inner" id="nav"></div></nav>
+
+<main class="gutter" id="main">
+  <div class="banner" id="banner" hidden></div>
+  <div id="view"></div>
+</main>
+
+<div id="modalRoot"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="/store.js"></script>
+<script>
+(() => {
+'use strict';
+// Bases live in the store (collection "bases"); BASES holds the active ones in display order.
+let BASES = [];
+let ALLBASES = [];
+function setBases(list){ ALLBASES=list.slice().sort((a,b)=>(a.order||0)-(b.order||0)); BASES=ALLBASES.filter(b=>!b.archived); }
+// FY27 runs 1 Oct 2026 – 30 Sep 2027. Sep '26 is kept as the FY26 close-out for continuity.
+const MONTHS = [
+  {k:'2026-09', l:"Sep '26", prior:true},
+  {k:'2026-10', l:"Oct '26"},{k:'2026-11', l:"Nov '26"},{k:'2026-12', l:"Dec '26"},
+  {k:'2027-01', l:"Jan '27"},{k:'2027-02', l:"Feb '27"},{k:'2027-03', l:"Mar '27"},
+  {k:'2027-04', l:"Apr '27"},{k:'2027-05', l:"May '27"},{k:'2027-06', l:"Jun '27"},
+  {k:'2027-07', l:"Jul '27"},{k:'2027-08', l:"Aug '27"},{k:'2027-09', l:"Sep '27"},
+];
+const RAG = {green:'On track', amber:'At risk', red:'Off track', blue:'Complete', '':'No status'};
+const BSTATUS = {open:'Open', board:'With the board', resolved:'Resolved'};
+
+const nowMonth = (() => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
+const S = {
+  month: MONTHS.some(m=>m.k===nowMonth) ? nowMonth : '2026-10',
+  view: 'network',
+  inits: [], updates: {}, prevUpdates: {}, feedback: {}, barriers: [],
+  db: null, user: null, uid: null, canWrite: null, names: {},
+  unsub: {}, expanded: {},
+};
+
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mlabel = k => (MONTHS.find(m=>m.k===k)||{l:k}).l;
+const prevKey = k => { const i=MONTHS.findIndex(m=>m.k===k); return i>0 ? MONTHS[i-1].k : null; };
+const fmtWhen = iso => { if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
+let toastT; const toast = m => { const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, 2200); };
+const who = id => id ? (S.names[id] || 'Someone') : '';
+
+/* ---------- data ---------- */
+function initsFor(base){ return S.inits.filter(i=>i.base===base && !i.archived).sort((a,b)=>(a.order||0)-(b.order||0)); }
+function upd(initId, month=S.month){ return (month===S.month ? S.updates : S.prevUpdates)[initId+'_'+month]; }
+function baseStats(base){
+  const list = initsFor(base);
+  const counts = {green:0,amber:0,red:0,blue:0,'':0}; let updated=0, needs=0;
+  list.forEach(i=>{ const u=upd(i.id); if(u && (u.text||u.rag)){ updated++; counts[u.rag in counts ? u.rag : '']++; if(u.needsBoard) needs++; } else counts['']++; });
+  const openB = S.barriers.filter(b=>b.base===base && b.status!=='resolved').length;
+  const fb = S.feedback[base+'_'+S.month];
+  return {total:list.length, updated, counts, needs, openB, fb: !!(fb && (fb.working||fb.focus||fb.actions))};
+}
+
+/* ---------- update text formatting ---------- */
+function fmt(text){
+  const lines=String(text||'').split('\n'); const out=[];
+  for(let raw of lines){ const l=raw.replace(/\t/g,' ').trim(); if(!l) continue;
+    const bare=l.replace(/[:：\s]+$/,'');
+    const isHead = bare.length<=40 && (/^[A-Z0-9][A-Z0-9 &\/'()\-–]+$/.test(bare) || /^(completed|ongoing|forthcoming( activities)?|next steps?|in progress|issues?|barriers?|challenges|focus areas?|successes|feedback)$/i.test(bare)) && !/^[•\-–o]/.test(l);
+    if(isHead){ let cls=''; if(/complet|done|deliver|success/i.test(bare)) cls='done'; else if(/forthcom|next|plan|ongoing|progress/i.test(bare)) cls='next'; else if(/issue|barrier|challenge|risk|concern/i.test(bare)) cls='issue'; out.push(`<span class="h ${cls}">${esc(bare)}</span>`); continue; }
+    const m=l.match(/^(?:[•\-–▪■]|o\s|\d+[.)])\s*(.*)$/); const sub=/^\s{2,}/.test(raw) || /^o\s/.test(l);
+    if(m){ out.push(`<p class="b ${sub?'l2':''}">${esc(m[1])}</p>`); continue; }
+    out.push(`<p class="p">${esc(l)}</p>`);
+  }
+  return `<div class="ft">${out.join('')}</div>`;
+}
+
+/* ---------- render ---------- */
+function renderMonths(){
+  $('#months').innerHTML = MONTHS.map(m => {
+    const future = m.k > nowMonth;
+    return `<button class="mbtn ${m.k===S.month?'on':''} ${m.prior?'prior':''} ${future?'future':''}" data-m="${m.k}" role="tab" aria-selected="${m.k===S.month}" title="${m.prior?'FY26 close-out':''}">${m.l}${m.prior?' <span class="ro">FY26</span>':''}</button>`;
+  }).join('');
+}
+function renderNav(){
+  const tabs = [{k:'network', l:'Network'}].concat(BASES.map(b=>({k:b.code,l:b.code}))).concat([{k:'barriers',l:'Barriers',sep:true},{k:'manage',l:'Initiatives'}]);
+  $('#nav').innerHTML = tabs.map(t => {
+    let cnt='';
+    if (t.k==='barriers'){ const n=S.barriers.filter(b=>b.status!=='resolved').length; if(n) cnt=`<span class="cnt hot">${n}</span>`; }
+    return `<button class="tab ${S.view===t.k?'on':''} ${t.sep?'sep':''}" data-v="${t.k}">${t.l}${cnt}</button>`;
+  }).join('');
+}
+function render(){
+  const keep={}; let focusId=null, sel=null;
+  document.querySelectorAll('#view textarea[id], #view input[id]').forEach(el=>{ if(el.value!==el.defaultValue) keep[el.id]=el.value; });
+  const ae=document.activeElement; if(ae && ae.id && ae.closest && ae.closest('#view')){ focusId=ae.id; try{ sel=[ae.selectionStart,ae.selectionEnd]; }catch(e){} }
+  renderMonths(); renderNav();
+  const b = $('#banner');
+  if (S.db === null && S.booted) { b.hidden=false; b.innerHTML = '<strong>Read-only preview.</strong> Couldn\'t reach the board\'s storage. Reload to try again.'; }
+  else if (S.canWrite === false) { b.hidden=false; b.innerHTML = '<strong>View only.</strong> You can read every update, but your access level on this board doesn\'t allow editing. Ask the board owner for Contributor access.'; }
+  else b.hidden=true;
+  const v=$('#view');
+  if (S.view==='network') v.innerHTML = renderNetwork();
+  else if (S.view==='barriers') v.innerHTML = renderBarriers();
+  else if (S.view==='manage') v.innerHTML = renderManage();
+  else v.innerHTML = renderBase(S.view);
+  Object.entries(keep).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+  if(focusId){ const el=document.getElementById(focusId); if(el){ el.focus({preventScroll:true}); if(sel&&el.setSelectionRange){ try{ el.setSelectionRange(sel[0],sel[1]); }catch(e){} } } }
+}
+
+function ragBar(c, total){
+  if(!total) return '<div class="ragbar"></div>';
+  const order=['green','amber','red','blue',''];
+  const col={green:'var(--ej-green)',amber:'var(--xlight-orange)',red:'var(--dark-orange)',blue:'var(--sky)','':'var(--grey-40)'};
+  return `<div class="ragbar" title="${total} initiatives">${order.map(k=>c[k]?`<span style="width:${100*c[k]/total}%;background:${col[k]}" title="${RAG[k]}: ${c[k]}"></span>`:'').join('')}</div>`;
+}
+
+function renderNetwork(){
+  const cards = BASES.map(b=>{
+    const st=baseStats(b.code);
+    return `<div class="card bcard" data-go="${b.code}" role="button" tabindex="0">
+      <div class="top"><span class="code">${b.code}</span><span class="name">${esc(b.name)}</span></div>
+      ${ragBar(st.counts, st.total)}
+      <div class="chips">
+        ${st.counts.green?`<span class="chip green">${st.counts.green} on track</span>`:''}
+        ${st.counts.amber?`<span class="chip amber">${st.counts.amber} at risk</span>`:''}
+        ${st.counts.red?`<span class="chip red">${st.counts.red} off track</span>`:''}
+        ${st.counts.blue?`<span class="chip blue">${st.counts.blue} complete</span>`:''}
+        ${st.counts['']?`<span class="chip none">${st.counts['']} no status</span>`:''}
+      </div>
+      <div class="stats">
+        <div class="stat-row ${st.needs?'warn':''}"><span>Needs board</span><b>${st.needs}</b></div>
+        <div class="stat-row ${st.openB?'warn':''}"><span>Open barriers</span><b>${st.openB}</b></div>
+        <div class="stat-row ${st.fb?'ok':''}"><span>Feedback</span><b>${st.fb?'Given':'—'}</b></div>
+      </div>
+    </div>`;
+  }).join('');
+  const needs = [];
+  BASES.forEach(b=> initsFor(b.code).forEach(i=>{ const u=upd(i.id); if(u&&u.needsBoard) needs.push({b:b.code,i,u}); }));
+  const net = S.feedback['NET_'+S.month] || {};
+  const dis = S.canWrite===false ? 'disabled' : '';
+  return `<div class="phead"><h2>Network <small>${mlabel(S.month)} · ${BASES.length} bases · ${S.inits.filter(i=>!i.archived).length} initiatives</small></h2>
+      <div class="actions">${S.canWrite===false?'':'<button class="btn" id="addBase">Add a base</button>'}<button class="btn" id="copyNet">Copy month summary</button></div></div>
+    ${BASES.length?`<div class="grid">${cards}</div>`:'<div class="empty">No bases on the board yet. Use "Add a base" to start.</div>'}
+    <div class="net2">
+      <div class="card asks"><h3>Asks of the board <span class="n">${needs.length}</span></h3>
+        ${needs.length ? needs.map(n=>`<div class="row needs" style="margin-bottom:8px;grid-template-columns:1fr"><div class="upd" style="padding:10px 12px">
+          <div class="uhead"><span class="chip board">${n.b}</span><b>${esc(n.i.focusArea||n.i.detail.split('\n')[0])}</b><button class="btn sm ghost" data-go="${n.b}">Open</button></div>
+          <p class="text" style="margin:0">${esc(n.u.barrier||'(no detail given)')}</p></div></div>`).join('') : '<div class="empty">No base has flagged anything for the board this month yet.</div>'}
+      </div>
+      <div class="card notes"><h3>Board meeting notes</h3>
+        <div class="field"><textarea id="netNotes" placeholder="Themes across the network, decisions taken, who's doing what by when…" ${dis}>${esc(net.notes||'')}</textarea></div>
+        <div class="fbfoot"><span>${net.updatedAt?`Saved ${fmtWhen(net.updatedAt)}${net.updatedBy?' by '+esc(who(net.updatedBy)):''}`:''}</span><button class="btn primary sm" id="saveNet" ${dis}>Save notes</button></div>
+      </div>
+    </div>`;
+}
+
+function renderBase(base){
+  const b = ALLBASES.find(x=>x.code===base); if(!b){ return '<div class="empty">Loading…</div>'; } const list = initsFor(base); const st=baseStats(base);
+  const groups = []; list.forEach(i=>{ let g=groups.find(x=>x.name===(i.group||'Other')); if(!g){g={name:i.group||'Other',items:[]};groups.push(g);} g.items.push(i); });
+  const pk = prevKey(S.month);
+  const dis = S.canWrite===false;
+  const rows = groups.map(g=>`<section class="group"><div class="ghead"><span>${esc(g.name)}</span><span>${g.items.length}</span></div>
+    ${g.items.map(i=>{
+      const u=upd(i.id)||{}; const p=pk?upd(i.id,pk):null; const has=!!(u.text||u.rag);
+      const title = i.focusArea || i.detail.split('\n')[0];
+      const detail = i.focusArea ? i.detail : i.detail.split('\n').slice(1).join('\n');
+      const long = (u.text||'').length>700 && !S.expanded[i.id];
+      return `<article class="row rag-${u.rag||'none'} ${u.needsBoard?'needs':''}" id="r-${i.id}">
+        <div class="def">
+          <h4 class="fa">${esc(title)}</h4>
+          ${detail?`<p class="dt">${esc(detail)}</p>`:''}
+          <dl class="kv">${i.kpi?`<div><dt>KPI to track</dt><dd>${esc(i.kpi)}</dd></div>`:''}${i.baseline?`<div><dt>S25 baseline</dt><dd>${esc(i.baseline)}</dd></div>`:''}</dl>
+        </div>
+        <div class="upd">
+          <div class="uhead">
+            <span class="chip ${u.rag||'none'}">${RAG[u.rag||'']}</span>
+            ${u.needsBoard?'<span class="chip board">Needs the board</span>':''}
+            <span class="when">${u.updatedAt?`${fmtWhen(u.updatedAt)}${u.updatedBy?' · '+esc(who(u.updatedBy)):''}`:''}${u.source?' · imported':''}</span>
+          </div>
+          ${has ? `<div class="${long?'clamp':''}">${fmt(u.text)}</div>${long?`<button class="more" data-more="${i.id}">Show full update</button>`:''}` : `<p class="text empty">No ${mlabel(S.month)} update yet.</p>`}
+          ${u.needsBoard && u.barrier ? `<div class="barrier"><b>Where we need the board</b>${esc(u.barrier)}</div>`:''}
+          ${p && p.text ? `<details class="prev"><summary>${mlabel(pk)} update</summary>${fmt(p.text)}</details>`:''}
+          <div class="ufoot"><button class="btn sm ${has?'':'primary'}" data-edit="${i.id}" ${dis?'disabled':''}>${has?'Edit update':'Add update'}</button></div>
+        </div>
+      </article>`;}).join('')}</section>`).join('');
+  const fb = S.feedback[base+'_'+S.month] || {};
+  const d = dis?'disabled':'';
+  return `<div class="phead"><h2>${base} <small>${esc(b.name)} · ${mlabel(S.month)} · ${st.updated} of ${st.total} updated${st.needs?` · ${st.needs} flagged for the board`:''}</small></h2>
+      <div class="actions"><button class="btn" id="copyBase" data-base="${base}">Copy as text</button>${dis?'':`<button class="btn" data-newbarrier="${base}">Log a barrier</button><button class="btn" data-archbase="${base}" style="border-color:var(--grey-40);color:var(--grey)">Archive ${base}</button>`}</div></div>
+    ${rows || '<div class="empty">No initiatives set up for this base yet. Add them under Initiatives.</div>'}
+    <section class="card" id="fbcard"><h3>Board feedback <span class="n">${mlabel(S.month)}</span></h3>
+      <div class="fb">
+        <div><label for="fbWorking">What's working</label><textarea id="fbWorking" ${d} placeholder="What the board recognised…">${esc(fb.working||'')}</textarea></div>
+        <div><label for="fbFocus">Focus areas</label><textarea id="fbFocus" ${d} placeholder="Where the board wants attention next month…">${esc(fb.focus||'')}</textarea></div>
+        <div><label for="fbActions">Board actions</label><textarea id="fbActions" ${d} placeholder="What the board or central teams will do, and who owns it…">${esc(fb.actions||'')}</textarea></div>
+      </div>
+      <div class="fbfoot"><span>${fb.updatedAt?`Saved ${fmtWhen(fb.updatedAt)}${fb.updatedBy?' by '+esc(who(fb.updatedBy)):''}`:'Not yet given this month.'}</span><button class="btn primary sm" id="saveFb" data-base="${base}" ${d}>Save feedback</button></div>
+    </section>
+    ${(()=>{ const bl=S.barriers.filter(x=>x.base===base && x.status!=='resolved'); return bl.length?`<section class="card barriers" style="margin-top:14px"><h3>Open barriers <span class="n">${bl.length}</span></h3>${barrierTable(bl)}</section>`:''; })()}`;
+}
+
+function barrierTable(list){
+  const dis = S.canWrite===false?'disabled':'';
+  return `<div class="tablewrap"><table><thead><tr><th>Base</th><th>Barrier</th><th>Raised</th><th>Status</th><th>Owner</th><th>Board action</th></tr></thead><tbody>
+  ${list.map(x=>{ const init=S.inits.find(i=>i.id===x.initiative); return `<tr data-bid="${x.id}">
+    <td><span class="b">${x.base}</span></td>
+    <td><div class="desc">${esc(x.description)}</div>${init?`<div class="ro">${esc(init.focusArea||init.detail.split('\n')[0])}</div>`:''}</td>
+    <td style="white-space:nowrap">${mlabel(x.month)}</td>
+    <td><select id="b-${x.id}-status" data-bf="status" ${dis}>${Object.entries(BSTATUS).map(([k,l])=>`<option value="${k}" ${x.status===k?'selected':''}>${l}</option>`).join('')}</select></td>
+    <td><input type="text" id="b-${x.id}-owner" data-bf="owner" value="${esc(x.owner||'')}" placeholder="Who" ${dis}></td>
+    <td><input type="text" id="b-${x.id}-action" data-bf="action" value="${esc(x.action||'')}" placeholder="What the board will do" ${dis}></td>
+  </tr>`;}).join('')}</tbody></table></div>`;
+}
+function renderBarriers(){
+  const f = S.bfilter || {base:'', status:'live'};
+  let list = S.barriers.slice().sort((a,b)=> (a.status==='resolved')-(b.status==='resolved') || (b.month||'').localeCompare(a.month||''));
+  if(f.base) list=list.filter(x=>x.base===f.base);
+  if(f.status==='live') list=list.filter(x=>x.status!=='resolved'); else if(f.status) list=list.filter(x=>x.status===f.status);
+  return `<div class="phead"><h2>Barriers <small>Everything the bases have asked the board to help clear. Change status, owner or action in place; it saves as you go.</small></h2>
+    <div class="actions">${S.canWrite===false?'':'<button class="btn primary" data-newbarrier="">Log a barrier</button>'}</div></div>
+    <div class="filters">
+      <select id="bfBase"><option value="">All bases</option>${BASES.map(b=>`<option ${f.base===b.code?'selected':''}>${b.code}</option>`).join('')}</select>
+      <select id="bfStatus"><option value="live" ${f.status==='live'?'selected':''}>Open and with the board</option><option value="open" ${f.status==='open'?'selected':''}>Open</option><option value="board" ${f.status==='board'?'selected':''}>With the board</option><option value="resolved" ${f.status==='resolved'?'selected':''}>Resolved</option><option value="" ${f.status===''?'selected':''}>All</option></select>
+    </div>
+    ${list.length ? `<div class="card">${barrierTable(list)}</div>` : '<div class="empty">Nothing here. Barriers appear when a base flags an update for the board, or when someone logs one directly.</div>'}`;
+}
+
+function renderManage(){
+  const dis = S.canWrite===false;
+  return `<div class="phead"><h2>Initiatives <small>The rows on each base's board. Archive what's finished; it stays in past months.</small></h2>
+    <div class="actions">${dis?'':'<button class="btn primary" data-newinit="">Add initiative</button>'}</div></div>
+    ${(()=>{ const arch=ALLBASES.filter(b=>b.archived); return arch.length?`<section class="group"><div class="ghead"><span>Archived bases</span><span>${arch.length}</span></div><div class="chips">${arch.map(b=>`<span class="chip grey" style="gap:8px">${b.code} · ${esc(b.name)} ${dis?'':`<button class="more" data-restorebase="${b.code}">Restore</button>`}</span>`).join('')}</div></section>`:''; })()}
+    ${BASES.map(b=>{ const all=S.inits.filter(i=>i.base===b.code).sort((x,y)=>(x.order||0)-(y.order||0)); return `<section class="group"><div class="ghead"><span>${b.code} · ${esc(b.name)}</span><span>${all.filter(i=>!i.archived).length} active</span></div>
+      <div class="card" style="padding:0"><div class="tablewrap"><table><thead><tr><th>#</th><th>Group</th><th>Focus area</th><th>Detail</th><th>KPI</th><th>S25</th><th></th></tr></thead><tbody>
+      ${all.map(i=>`<tr style="${i.archived?'opacity:.5':''}"><td>${i.order||''}</td><td>${esc(i.group)}</td><td><span class="b" style="letter-spacing:.3px">${esc(i.focusArea)}</span></td><td><div class="desc">${esc(i.detail)}</div></td><td><div class="desc">${esc(i.kpi)}</div></td><td><div class="desc">${esc(i.baseline)}</div></td>
+        <td style="white-space:nowrap">${dis?'':`<button class="btn sm" data-editinit="${i.id}">Edit</button> <button class="btn sm ghost" data-arch="${i.id}">${i.archived?'Restore':'Archive'}</button>`}</td></tr>`).join('') || '<tr><td colspan="7" class="ro">No initiatives yet.</td></tr>'}
+      </tbody></table></div></div></section>`;}).join('')}`;
+}
+
+/* ---------- modals ---------- */
+function openModal(html){ $('#modalRoot').innerHTML = `<div class="overlay" id="overlay"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`; const f=$('#modalRoot textarea, #modalRoot input, #modalRoot select'); if(f) f.focus(); }
+function closeModal(){ $('#modalRoot').innerHTML=''; }
+
+function editUpdate(initId){
+  const i=S.inits.find(x=>x.id===initId); if(!i) return;
+  const u=upd(initId)||{}; const pk=prevKey(S.month); const p=pk?upd(initId,pk):null;
+  openModal(`<div><h2>${esc(i.base)} · ${esc(i.focusArea||i.detail.split('\n')[0])}</h2><div class="ctx">${mlabel(S.month)} update${i.kpi?` · KPI: ${esc(i.kpi).replace(/\n/g,', ')}`:''}</div></div>
+    <div class="field"><label>Status</label><div class="ragpick" id="ragpick">${['green','amber','red','blue',''].map(k=>`<button type="button" data-rag="${k}" class="${(u.rag||'')===k?'on':''}">${RAG[k]}</button>`).join('')}</div></div>
+    <div class="field"><label for="uText">What's happened this month</label><textarea id="uText" style="min-height:220px" placeholder="Completed, ongoing, forthcoming. Keep it to what the base did and what it changed.">${esc(u.text||'')}</textarea>
+      ${p&&p.text?`<div class="hint"><button type="button" class="more" id="copyPrev">Start from the ${mlabel(pk)} text</button></div>`:''}</div>
+    <div class="field"><label class="check"><input type="checkbox" id="uNeeds" ${u.needsBoard?'checked':''}> Flag for the board</label>
+      <div id="barrierWrap" ${u.needsBoard?'':'hidden'} style="margin-top:8px"><textarea id="uBarrier" style="min-height:80px" placeholder="What's in the way and what you need from the board or central teams.">${esc(u.barrier||'')}</textarea>
+      <div class="hint">This also logs it on the Barriers tab so the board can assign an owner and track it.</div></div></div>
+    <div class="foot"><span class="ro" id="mLeft">${(u.text||u.rag)?`<button type="button" class="btn sm" id="mRemove" style="border-color:var(--dark-orange-40);color:var(--red)">Remove this update</button> `:''}${u.updatedAt?`Last saved ${fmtWhen(u.updatedAt)}${u.updatedBy?' by '+esc(who(u.updatedBy)):''}`:''}</span>
+      <div class="right"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mSave">Save update</button></div></div>`);
+  const rm=$('#mRemove'); if(rm) rm.addEventListener('click',()=>{
+    $('#mLeft').innerHTML=`<span style="color:var(--red);font-weight:700">Remove the ${mlabel(S.month)} update for this initiative?</span> <button type="button" class="btn sm primary" id="mRemoveYes" style="background:var(--dark-orange);border-color:var(--dark-orange)">Yes, remove</button> <button type="button" class="btn sm" id="mRemoveNo">Keep it</button>`;
+    $('#mRemoveNo').addEventListener('click',()=>editUpdate(initId));
+    $('#mRemoveYes').addEventListener('click',async()=>{
+      if(!S.db){ toast('Not connected'); return; }
+      try{ await S.db.doc('updates/'+i.id+'_'+S.month).delete(); const bid=i.id+'_'+S.month; if(S.barriers.some(b=>b.id===bid)) await S.db.doc('barriers/'+bid).delete(); toast('Update removed'); closeModal(); }
+      catch(e){ toast('Couldn\'t remove: '+(e&&e.message||'try again')); }
+    });
+  });
+  let rag=u.rag||'';
+  $('#ragpick').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; rag=b.dataset.rag; $('#ragpick').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); });
+  $('#uNeeds').addEventListener('change',e=>{ $('#barrierWrap').hidden=!e.target.checked; });
+  const cp=$('#copyPrev'); if(cp) cp.addEventListener('click',()=>{ if(!$('#uText').value.trim()) $('#uText').value=p.text; });
+  $('#mCancel').addEventListener('click',closeModal);
+  $('#mSave').addEventListener('click',async()=>{
+    const text=$('#uText').value.trim(); const needs=$('#uNeeds').checked; const barrier=needs?$('#uBarrier').value.trim():'';
+    const doc={base:i.base, initiative:i.id, month:S.month, text, rag, needsBoard:needs, barrier, updatedAt:new Date().toISOString(), updatedBy:S.uid||null};
+    const ok = await save(S.db.doc('updates/'+i.id+'_'+S.month), doc, 'Update saved');
+    if(ok && needs && barrier){
+      const bid=i.id+'_'+S.month; const ex=S.barriers.find(b=>b.id===bid);
+      await save(S.db.doc('barriers/'+bid), {base:i.base, initiative:i.id, month:S.month, description:barrier, status:ex?ex.status:'open', owner:ex?ex.owner||'':'', action:ex?ex.action||'':'', raisedBy:S.uid||null, updatedAt:new Date().toISOString()});
+    }
+    if(ok) closeModal();
+  });
+}
+
+function newBarrier(base){
+  openModal(`<div><h2>Log a barrier</h2><div class="ctx">Something the base can't clear alone. The board picks it up at the next meeting.</div></div>
+    <div class="two"><div class="field"><label for="nbBase">Base</label><select id="nbBase">${BASES.map(b=>`<option ${b.code===base?'selected':''}>${b.code}</option>`).join('')}</select></div>
+    <div class="field"><label for="nbInit">Related initiative (optional)</label><select id="nbInit"></select></div></div>
+    <div class="field"><label for="nbDesc">What's in the way</label><textarea id="nbDesc" placeholder="Be specific about the blocker and the ask."></textarea></div>
+    <div class="foot"><span></span><div class="right"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mSave">Log barrier</button></div></div>`);
+  const fill=()=>{ const b=$('#nbBase').value; $('#nbInit').innerHTML='<option value="">—</option>'+initsFor(b).map(i=>`<option value="${i.id}">${esc(i.focusArea||i.detail.split('\n')[0])}</option>`).join(''); };
+  fill(); $('#nbBase').addEventListener('change',fill);
+  $('#mCancel').addEventListener('click',closeModal);
+  $('#mSave').addEventListener('click',async()=>{
+    const desc=$('#nbDesc').value.trim(); if(!desc){ toast('Describe the barrier first'); return; }
+    const ref=S.db.collection('barriers').doc();
+    const ok=await save(ref,{base:$('#nbBase').value, initiative:$('#nbInit').value||null, month:S.month, description:desc, status:'open', owner:'', action:'', raisedBy:S.uid||null, updatedAt:new Date().toISOString()},'Barrier logged');
+    if(ok) closeModal();
+  });
+}
+
+function editInit(id){
+  const i = id ? S.inits.find(x=>x.id===id) : {base:(BASES.some(b=>b.code===S.view)?S.view:(BASES[0]||{}).code), group:'', focusArea:'', detail:'', kpi:'', baseline:''};
+  openModal(`<div><h2>${id?'Edit initiative':'Add initiative'}</h2></div>
+    <div class="two"><div class="field"><label for="iBase">Base</label><select id="iBase" ${id?'disabled':''}>${BASES.map(b=>`<option ${b.code===i.base?'selected':''}>${b.code}</option>`).join('')}</select></div>
+    <div class="field"><label for="iGroup">Group</label><input type="text" id="iGroup" list="groups" value="${esc(i.group)}" placeholder="e.g. Focus based on Deep Dive"><datalist id="groups">${[...new Set(S.inits.map(x=>x.group).filter(Boolean))].map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div></div>
+    <div class="field"><label for="iFa">Focus area</label><input type="text" id="iFa" value="${esc(i.focusArea)}" placeholder="e.g. FIRST WAVE"></div>
+    <div class="field"><label for="iDetail">Detail</label><textarea id="iDetail" style="min-height:90px">${esc(i.detail)}</textarea></div>
+    <div class="two"><div class="field"><label for="iKpi">KPI to track</label><textarea id="iKpi" style="min-height:60px">${esc(i.kpi)}</textarea></div>
+    <div class="field"><label for="iBase25">S25 actuals (baseline)</label><textarea id="iBase25" style="min-height:60px">${esc(i.baseline)}</textarea></div></div>
+    <div class="foot"><span></span><div class="right"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mSave">Save</button></div></div>`);
+  $('#mCancel').addEventListener('click',closeModal);
+  $('#mSave').addEventListener('click',async()=>{
+    const base=$('#iBase').value; const detail=$('#iDetail').value.trim(); const fa=$('#iFa').value.trim();
+    if(!detail && !fa){ toast('Give it a focus area or some detail'); return; }
+    const existing=S.inits.filter(x=>x.base===base);
+    const newId = id || (base.toLowerCase()+'-'+String(Math.max(0,...existing.map(x=>parseInt((x.id.split('-')[1]||'0'),10)||0))+1).padStart(2,'0'));
+    const doc={id:newId, base, group:$('#iGroup').value.trim(), focusArea:fa, detail, kpi:$('#iKpi').value.trim(), baseline:$('#iBase25').value.trim(), order: id?i.order:(Math.max(0,...existing.map(x=>x.order||0))+1), archived: id?!!i.archived:false};
+    const ok=await save(S.db.doc('initiatives/'+newId), doc, 'Initiative saved'); if(ok) closeModal();
+  });
+}
+
+function addBase(){
+  openModal(`<div><h2>Add a base</h2><div class="ctx">It gets its own tab and an empty board; add its initiatives under Initiatives.</div></div>
+    <div class="two"><div class="field"><label for="nbCode">IATA code</label><input type="text" id="nbCode" maxlength="4" placeholder="e.g. LTN" style="text-transform:uppercase"></div>
+    <div class="field"><label for="nbName">Name</label><input type="text" id="nbName" placeholder="e.g. London Luton"></div></div>
+    <div class="foot"><span></span><div class="right"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mSave">Add base</button></div></div>`);
+  $('#mCancel').addEventListener('click',closeModal);
+  $('#mSave').addEventListener('click',async()=>{
+    const code=$('#nbCode').value.trim().toUpperCase(); const name=$('#nbName').value.trim();
+    if(!/^[A-Z0-9]{3,4}$/.test(code)){ toast('Use the 3-letter IATA code'); return; }
+    const ex=ALLBASES.find(b=>b.code===code);
+    if(ex && !ex.archived){ toast(code+' is already on the board'); return; }
+    const doc={code, name:name||code, order: ex?ex.order:(Math.max(0,...ALLBASES.map(b=>b.order||0))+1), archived:false};
+    const ok=await save(S.db.doc('bases/'+code), doc, ex?code+' restored':code+' added'); if(ok){ closeModal(); S.view=code; render(); }
+  });
+}
+function archiveBase(code){
+  const b=ALLBASES.find(x=>x.code===code); if(!b) return;
+  openModal(`<div><h2>Archive ${esc(code)}?</h2><div class="ctx">${esc(b.name)} comes off the board and the network view. Nothing is deleted: its initiatives, updates, feedback and barriers stay in the store, and you can restore it from the Initiatives tab.</div></div>
+    <div class="foot"><span></span><div class="right"><button class="btn" id="mCancel">Keep it</button><button class="btn primary" id="mSave">Archive base</button></div></div>`);
+  $('#mCancel').addEventListener('click',closeModal);
+  $('#mSave').addEventListener('click',async()=>{ const d=Object.assign({},b,{archived:true}); const ok=await save(S.db.doc('bases/'+code), d, code+' archived'); if(ok){ closeModal(); S.view='network'; render(); } });
+}
+async function restoreBase(code){ const b=ALLBASES.find(x=>x.code===code); if(!b) return; const d=Object.assign({},b,{archived:false}); await save(S.db.doc('bases/'+code), d, code+' restored'); }
+
+/* ---------- persistence ---------- */
+async function save(ref, doc, msg){
+  if(!S.db){ toast('Not connected; nothing saved'); return false; }
+  try { await ref.set(doc); if(msg) toast(msg); return true; }
+  catch(e){ if(e && e.code==='invalid_argument' && S.canWrite===null){ S.canWrite=false; render(); } toast('Couldn\'t save: '+(e&&e.message||'try again')); return false; }
+}
+let fbTimer;
+async function saveFeedback(key, fields){
+  const prev=S.feedback[key]||{};
+  const doc=Object.assign({}, prev, fields, {key, month:S.month, updatedAt:new Date().toISOString(), updatedBy:S.uid||null});
+  await save(S.db.doc('feedback/'+key), doc, 'Saved');
+}
+async function patchBarrier(id, field, value){
+  const b=S.barriers.find(x=>x.id===id); if(!b) return;
+  if(b[field]===value) return;
+  const doc=Object.assign({}, b, {[field]:value, updatedAt:new Date().toISOString()}); delete doc.id;
+  await save(S.db.doc('barriers/'+id), doc, null);
+}
+
+/* ---------- subscriptions ---------- */
+function subscribeMonth(){
+  if(!S.db) return;
+  ['cur','prev'].forEach(k=>{ if(S.unsub[k]){ S.unsub[k](); delete S.unsub[k]; } });
+  S.updates={}; S.prevUpdates={};
+  const q=S.db.collection('updates').where('month','==',S.month);
+  S.unsub.cur=q.onSnapshot(snap=>{ S.updates={}; snap.docs.forEach(d=>{ S.updates[d.id]=d.data(); }); collectNames(); render(); }, err=>console.warn('updates',err));
+  const pk=prevKey(S.month);
+  if(pk){ S.unsub.prev=S.db.collection('updates').where('month','==',pk).onSnapshot(snap=>{ S.prevUpdates={}; snap.docs.forEach(d=>{ S.prevUpdates[d.id]=d.data(); }); render(); }, err=>console.warn('prev',err)); }
+}
+let nameReq=0;
+async function collectNames(){
+  if(!S.user) return;
+  const ids=new Set();
+  Object.values(S.updates).forEach(u=>u.updatedBy&&ids.add(u.updatedBy));
+  Object.values(S.feedback).forEach(u=>u.updatedBy&&ids.add(u.updatedBy));
+  const need=[...ids].filter(id=>!(id in S.names)); if(!need.length) return;
+  const my=++nameReq;
+  try{ const ps=await S.user.profiles(need); if(my!==nameReq) return; let ch=false; need.forEach(id=>{ const p=ps&&ps[id]; S.names[id]=(p&&p.name)||'Someone'; ch=true; }); if(ch) render(); }catch(e){ need.forEach(id=>S.names[id]='Someone'); }
+}
+
+async function boot(){
+  render();
+  const [db,user] = await Promise.all([claude.use('db'), claude.use('user')]);
+  S.db=db; S.user=user; S.booted=true;
+  if(user){ try{ S.uid=await user.id(); }catch(e){} try{ S.canWrite=await user.can('data.write'); }catch(e){ S.canWrite=null; } }
+  if(!db){ render(); return; }
+  S.unsub.bases=db.collection('bases').onSnapshot(snap=>{
+    let list=snap.docs.map(d=>Object.assign({code:d.id},d.data()));
+    if(!list.length){ const codes=[...new Set(S.inits.map(i=>i.base))]; list=codes.map((c,n)=>({code:c,name:c,order:n+1,archived:false})); }
+    setBases(list); if(!ALLBASES.some(b=>b.code===S.view) && !['network','barriers','manage'].includes(S.view)) S.view='network'; render();
+  }, err=>console.warn('bases',err));
+  S.unsub.inits=db.collection('initiatives').onSnapshot(snap=>{ S.inits=snap.docs.map(d=>Object.assign({id:d.id},d.data())); render(); }, err=>console.warn('inits',err));
+  S.unsub.fb=db.collection('feedback').onSnapshot(snap=>{ S.feedback={}; snap.docs.forEach(d=>{ S.feedback[d.id]=d.data(); }); collectNames(); render(); }, err=>console.warn('fb',err));
+  S.unsub.bar=db.collection('barriers').onSnapshot(snap=>{ S.barriers=snap.docs.map(d=>Object.assign({id:d.id},d.data())); render(); }, err=>console.warn('barriers',err));
+  subscribeMonth();
+}
+
+/* ---------- copy as text ---------- */
+function baseText(base){
+  const b=BASES.find(x=>x.code===base); const lines=[`${base} · ${b.name} · BIG BOARD ${mlabel(S.month)}`,''];
+  initsFor(base).forEach(i=>{ const u=upd(i.id)||{}; lines.push(`■ ${(i.focusArea||i.detail.split('\n')[0]).toUpperCase()} — ${RAG[u.rag||'']}${u.needsBoard?' — NEEDS THE BOARD':''}`); if(i.kpi) lines.push(`  KPI: ${i.kpi.replace(/\n/g,', ')}`); lines.push(u.text?u.text.split('\n').map(l=>'  '+l).join('\n'):'  (no update)'); if(u.needsBoard&&u.barrier) lines.push('  WHERE WE NEED THE BOARD: '+u.barrier); lines.push(''); });
+  const fb=S.feedback[base+'_'+S.month]; if(fb&&(fb.working||fb.focus||fb.actions)){ lines.push('BOARD FEEDBACK'); if(fb.working) lines.push('What\'s working: '+fb.working); if(fb.focus) lines.push('Focus areas: '+fb.focus); if(fb.actions) lines.push('Board actions: '+fb.actions); }
+  return lines.join('\n');
+}
+function networkText(){
+  const lines=[`BIG BOARD · Network summary · ${mlabel(S.month)}`,''];
+  BASES.forEach(b=>{ const st=baseStats(b.code); const c=st.counts; lines.push(`${b.code}: ${st.updated}/${st.total} updated · ${c.green} on track, ${c.amber} at risk, ${c.red} off track, ${c.blue} complete · ${st.needs} flagged for board · ${st.openB} open barriers`); });
+  const net=S.feedback['NET_'+S.month]; if(net&&net.notes){ lines.push('','BOARD NOTES',net.notes); }
+  return lines.join('\n');
+}
+async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast('Copied'); }catch(e){ openModal(`<div><h2>Copy this text</h2></div><textarea style="min-height:300px" id="cpTa">${esc(t)}</textarea><div class="foot"><span></span><div class="right"><button class="btn" id="mCancel">Close</button></div></div>`); const ta=$('#cpTa'); ta.select(); $('#mCancel').addEventListener('click',closeModal); } }
+
+/* ---------- events ---------- */
+$('#months').addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(!b) return; S.month=b.dataset.m; S.expanded={}; subscribeMonth(); render(); });
+$('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b) return; S.view=b.dataset.v; render(); window.scrollTo({top:0}); });
+$('#view').addEventListener('click',async e=>{
+  const t=e.target;
+  const go=t.closest('[data-go]'); if(go && !t.closest('textarea')){ S.view=go.dataset.go; render(); window.scrollTo({top:0}); return; }
+  if(t.id==='copyBase'){ copyText(baseText(t.dataset.base)); return; }
+  if(t.id==='addBase'){ addBase(); return; }
+  if(t.dataset.archbase){ archiveBase(t.dataset.archbase); return; }
+  if(t.dataset.restorebase){ restoreBase(t.dataset.restorebase); return; }
+  if(t.id==='copyNet'){ copyText(networkText()); return; }
+  if(t.dataset.more){ S.expanded[t.dataset.more]=true; render(); return; }
+  if(t.dataset.edit){ editUpdate(t.dataset.edit); return; }
+  if(t.dataset.newbarrier!==undefined){ newBarrier(t.dataset.newbarrier||(BASES.some(b=>b.code===S.view)?S.view:(BASES[0]||{}).code)); return; }
+  if(t.dataset.newinit!==undefined){ editInit(null); return; }
+  if(t.dataset.editinit){ editInit(t.dataset.editinit); return; }
+  if(t.dataset.arch){ const i=S.inits.find(x=>x.id===t.dataset.arch); if(i){ const d=Object.assign({},i,{archived:!i.archived}); await save(S.db.doc('initiatives/'+i.id), d, d.archived?'Archived':'Restored'); } return; }
+  if(t.id==='saveFb'){ saveFeedback(t.dataset.base+'_'+S.month,{base:t.dataset.base, working:$('#fbWorking').value.trim(), focus:$('#fbFocus').value.trim(), actions:$('#fbActions').value.trim()}); return; }
+  if(t.id==='saveNet'){ saveFeedback('NET_'+S.month,{base:'NET', notes:$('#netNotes').value.trim()}); return; }
+});
+$('#view').addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.classList.contains('bcard')){ S.view=e.target.dataset.go; render(); } });
+$('#view').addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='bfBase'||t.id==='bfStatus'){ S.bfilter={base:$('#bfBase').value, status:$('#bfStatus').value}; render(); return; }
+  if(t.dataset.bf){ const tr=t.closest('tr'); patchBarrier(tr.dataset.bid, t.dataset.bf, t.value.trim?t.value.trim():t.value); }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+$('#modalRoot').addEventListener('click',e=>{ if(e.target.id==='overlay') closeModal(); });
+
+if(window.claude && typeof window.claude.use==='function') boot(); else { S.booted=true; render(); }
+})();
+</script>
+
+</body>
+</html>
