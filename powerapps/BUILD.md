@@ -187,8 +187,8 @@ cFaint  = ColorValue("#A4A4A2");
 cBg     = ColorValue("#F7F7F6");
 cLine   = ColorValue("#E3E3E1");
 
-// Names and regions for the base picker and tables. Bases appear in the app only once they
-// have an active initiative; a code missing here still works and shows as itself under "Other".
+// Every base, in the order they appear in the picker and tables. A base shows in the app once it
+// is listed here AND has at least one active initiative.
 tBaseInfo = Table(
     {Code: "BFS", Name: "Belfast",            Region: "UK",          R: 1},
     {Code: "BHX", Name: "Birmingham",         Region: "UK",          R: 1},
@@ -253,15 +253,9 @@ Set(varMonth, If(IsBlank(LookUp(tMonths, Key = Text(Today(), "yyyy-mm"))), "2026
 Set(varView, "NETWORK");
 Set(varFilter, "All");
 ClearCollect(colInits, Filter(Initiatives, Active = true));
-// Every base with at least one active initiative: UK, Europe, Switzerland, Morocco, then A to Z.
-ClearCollect(colBases, SortByColumns(
-    AddColumns(Distinct(colInits, Base) As b,
-        Code,   b.Value,
-        Name,   Coalesce(LookUp(tBaseInfo, Code = b.Value).Name, b.Value),
-        Region, Coalesce(LookUp(tBaseInfo, Code = b.Value).Region, "Other"),
-        R,      Coalesce(LookUp(tBaseInfo, Code = b.Value).R, 9)),
-    R, SortOrder.Ascending, Code, SortOrder.Ascending));
 Set(varRegion, "All");
+// Bases from tBaseInfo that have at least one active initiative, in tBaseInfo's order.
+ClearCollect(colBases, Filter(tBaseInfo, Code in colInits.Base));
 Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
 Concurrent(
     ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -2056,6 +2050,6 @@ OnSelect:
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
 - **Editing initiatives:** add, rename or retire them straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
-- **A new base:** add its initiatives to the Initiatives list, with the code in Base. It appears in the base picker, the Network table and the Barriers filter the next time the app opens. For its full name and region, add one line to `tBaseInfo` in App.Formulas. Without that line it still works and shows the code under "Other".
+- **A new base:** add its initiatives to the Initiatives list, with the code in Base. It appears in the base picker, the Network table and the Barriers filter the next time the app opens. It must also have a line in `tBaseInfo` in App.Formulas. Put it where you want it to sort.
 - **Retiring a base:** set Active to No on its initiatives and it drops out of the picker and tables. Its history stays in the lists.
 - **FY28:** change `Date(2026, 9, 1)` in `tMonths`.
