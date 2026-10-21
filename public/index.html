@@ -81,14 +81,24 @@ button{cursor:pointer}
 
 /* masthead */
 .mast{background:var(--orange);color:#fff}
-.mast .inner{display:flex;flex-wrap:wrap;align-items:center;gap:10px 24px;padding-block:14px 12px;max-width:1400px;margin:0 auto}
-.brand{display:flex;align-items:baseline;gap:12px;flex:1 1 auto;min-width:0}
-.brand h1{font-family:var(--display);font-weight:600;font-size:30px;letter-spacing:.5px;text-transform:uppercase;margin:0;line-height:.9}
-.brand .fy{font-family:var(--display);font-weight:500;font-size:16px;text-transform:uppercase;letter-spacing:1.5px;opacity:.9}
-.brand .sub{font-size:12.5px;opacity:.92;flex-basis:100%;margin-top:2px}
-.months{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px;margin:0 -2px}
+.mast .inner{display:flex;align-items:center;gap:10px 20px;padding-block:10px;max-width:1400px;margin:0 auto}
+.brand{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.brand h1{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:.5px;text-transform:uppercase;margin:0;line-height:1;white-space:nowrap}
+.brand .fy{font-family:var(--display);font-weight:500;font-size:13px;text-transform:uppercase;letter-spacing:1.2px;opacity:.85;white-space:nowrap}
+.months{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px;margin:0 -2px;flex:1 1 auto;min-width:0}
+#acct{flex:0 0 auto;margin-left:auto}
+@media(max-width:900px){.mast .inner{flex-wrap:wrap}.months{order:3;flex-basis:100%}}
+@media(max-width:520px){.brand .fy{display:none}}
+.acct{position:relative;z-index:40}
+.acct summary{list-style:none;cursor:pointer;background:rgba(255,255,255,.16);color:#fff;border-radius:999px;padding:4px 12px;font-weight:700;font-size:12.5px;white-space:nowrap}
+.acct summary::-webkit-details-marker{display:none}
+.acct summary:hover{background:rgba(255,255,255,.28)}
+.acct .menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);min-width:190px;padding:6px;display:flex;flex-direction:column}
+.acct .menu .who{padding:6px 10px 8px;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.acct .menu a,.acct .menu button{display:block;text-align:left;padding:7px 10px;border-radius:6px;color:var(--fg);text-decoration:none;background:none;border:0;font-size:13px;font-weight:600}
+.acct .menu a:hover,.acct .menu button:hover{background:var(--surface-2)}
 .months::-webkit-scrollbar{display:none}
-.mbtn{flex:0 0 auto;border:0;border-radius:999px;padding:6px 12px;background:rgba(255,255,255,.14);color:#fff;font-weight:600;font-size:13px;white-space:nowrap;position:relative}
+.mbtn{flex:0 0 auto;border:0;border-radius:999px;padding:4px 10px;background:rgba(255,255,255,.14);color:#fff;font-weight:600;font-size:13px;white-space:nowrap;position:relative}
 .mbtn:hover{background:rgba(255,255,255,.26)}
 .mbtn.on{background:#fff;color:var(--dark-orange)}
 .mbtn.prior{opacity:.75}
@@ -134,7 +144,7 @@ main{max-width:1400px;margin:0 auto;padding-block:20px 60px}
 .bcard .top{display:flex;justify-content:space-between;align-items:baseline}
 .bcard .code{font-family:var(--display);font-size:24px;font-weight:600;letter-spacing:1px;color:var(--orange)}
 .bcard .name{color:var(--muted);font-size:12.5px}
-.ragbar{display:flex;height:10px;border-radius:4px;overflow:hidden;background:var(--surface-2)}
+.ragbar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--surface-2)}
 .ragbar span{display:block;height:100%}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px;color:var(--muted)}
 .stat-row{display:flex;flex-direction:column;gap:1px;align-items:flex-start}
@@ -155,43 +165,49 @@ main{max-width:1400px;margin:0 auto;padding-block:20px 60px}
 .chip.none{background:var(--none-bg);color:var(--none-fg)}
 .chip.board{background:var(--orange);color:#fff}
 .chip.board::before{display:none}
-.net2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:16px}
+.bcard .prog{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.bcard .prog b{color:var(--fg);font-variant-numeric:tabular-nums}
+.bcard .flags{display:flex;flex-wrap:wrap;gap:5px;min-height:22px;align-items:center}
+.bcard .quiet{font-size:12.5px;color:var(--faint)}
+.chip.warn{background:var(--red-soft);color:var(--red)}
+.chip.ok{background:var(--green-soft);color:var(--green)}
+.net2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:16px;align-items:start}
 @media(max-width:900px){.net2{grid-template-columns:1fr}}
 .card h3{font-family:var(--display);font-weight:500;font-size:16px;text-transform:uppercase;letter-spacing:.8px;margin:0 0 10px;color:var(--muted)}
 .card h3 .n{color:var(--fg)}
 
 /* board (base view) */
 .group{margin-bottom:22px}
-.ghead{font-family:var(--display);font-weight:500;font-size:13px;letter-spacing:1.4px;text-transform:uppercase;color:var(--grey);padding:0 0 6px 2px;border-bottom:2px solid var(--orange-40);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-.row{display:grid;grid-template-columns:minmax(220px,2fr) minmax(0,5fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
-.row{border-left:5px solid var(--line-strong)}
+.ghead{font-family:var(--display);font-weight:500;font-size:13px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);padding:0 2px 6px;border-bottom:1px solid var(--line-strong);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.row{display:grid;grid-template-columns:minmax(240px,1fr) minmax(0,2.6fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.row{border-left:4px solid var(--line-strong)}
 .row.rag-green{border-left-color:var(--ej-green)}
 .row.rag-amber{border-left-color:var(--xlight-orange)}
 .row.rag-red{border-left-color:var(--dark-orange)}
 .row.rag-blue{border-left-color:var(--sky)}
 .row.needs .def{box-shadow:inset 0 3px 0 var(--orange)}
 @media(max-width:760px){.row{grid-template-columns:1fr}}
-.def{padding:12px 14px;border-right:1px solid var(--line);background:var(--surface-2);min-width:0}
+.def{padding:14px 16px;border-right:1px solid var(--line);min-width:0}
 @media(max-width:760px){.def{border-right:0;border-bottom:1px solid var(--line)}}
-.def .fa{font-family:var(--display);font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.4px;line-height:1.15;margin:0 0 4px;color:var(--orange)}
-.def .dt{font-size:13px;color:var(--fg);white-space:pre-line;margin:0 0 8px}
-.def .kv{display:flex;flex-direction:column;gap:6px;font-size:12px;margin:0}
-.def .kv div{background:var(--sky-10);border-radius:7px;padding:5px 8px;border-left:3px solid var(--sky)}
-.def .kv dt{font-weight:700;letter-spacing:.8px;text-transform:uppercase;font-size:10px;color:var(--blue)}
+.def .fa{font-family:var(--display);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:.4px;line-height:1.2;margin:0 0 4px;color:var(--fg)}
+.def .dt{font-size:13px;color:var(--muted);white-space:pre-line;margin:0 0 10px}
+.def .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12.5px;margin:0;padding-top:8px;border-top:1px solid var(--line)}
+.def .kv div{display:contents}
+.def .kv dt{font-weight:700;letter-spacing:.8px;text-transform:uppercase;font-size:10.5px;color:var(--faint);padding-top:2px;white-space:nowrap}
 .def .kv dd{margin:0;white-space:pre-line;color:var(--fg);font-variant-numeric:tabular-nums}
-.upd{padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:8px}
-.upd .uhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.upd .uhead .when{font-size:11.5px;color:var(--faint);margin-left:auto}
+.upd{padding:14px 18px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.upd .uhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:26px}
+.upd .uhead .when{font-size:12px;color:var(--faint);margin-left:auto}
 .upd .text{white-space:pre-wrap;font-size:13.5px;line-height:1.55;margin:0}
 .upd .text.empty{color:var(--faint);font-style:italic}
-.ft{font-size:13.5px;line-height:1.5;display:flex;flex-direction:column;gap:3px;margin:0}
-.ft .h{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--dark-orange);margin-top:8px;padding-bottom:2px;border-bottom:1px solid var(--orange-40);display:inline-block;align-self:flex-start}
+.ft{font-size:14px;line-height:1.55;display:flex;flex-direction:column;gap:4px;margin:0;max-width:78ch}
+.ft .h{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);margin-top:10px;display:inline-block;align-self:flex-start}
 .ft .h:first-child{margin-top:0}
-.ft .h.done{color:var(--green);border-color:var(--ej-green-40)}
-.ft .h.next{color:#FFAA00;border-color:var(--xlight-orange-40)}
-.ft .h.issue{color:var(--red);border-color:var(--dark-orange-40)}
+.ft .h.done{color:var(--green)}
+.ft .h.next{color:var(--amber)}
+.ft .h.issue{color:var(--red)}
 .ft .b{display:flex;gap:7px;margin:0}
-.ft .b::before{content:"";flex:0 0 6px;height:6px;border-radius:50%;background:var(--orange-40);margin-top:8px}
+.ft .b::before{content:"";flex:0 0 5px;height:5px;border-radius:50%;background:var(--faint);margin-top:9px}
 .ft .b.l2{padding-left:16px}
 .ft .b.l2::before{background:var(--grey-40);width:5px;height:5px;flex-basis:5px}
 .ft .p{margin:0;white-space:pre-wrap}
@@ -205,7 +221,7 @@ details.prev summary{cursor:pointer;color:var(--muted);font-weight:700;font-size
 details.prev summary::before{content:"▸";font-size:11px;transition:transform .15s}
 details.prev[open] summary::before{transform:rotate(90deg)}
 details.prev .text{color:var(--muted);margin-top:6px;border-left:2px solid var(--line);padding-left:10px}
-.clamp{max-height:9.5em;overflow:hidden;position:relative}
+.clamp{max-height:11em;overflow:hidden;position:relative}
 .clamp::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2.5em;background:linear-gradient(to bottom,transparent,var(--surface))}
 .more{background:none;border:0;color:var(--dark-orange);font-weight:700;font-size:12px;padding:0;align-self:flex-start}
 
@@ -277,9 +293,9 @@ td .desc{white-space:pre-wrap}
     <div class="brand">
       <h1>BIG BOARD</h1>
       <span class="fy">FY27 · Focus initiatives</span>
-      <span class="sub">Base teams update their initiatives each month. The board reviews, gives feedback and helps clear the barriers that are flagged.</span>
     </div>
     <div class="months" id="months" role="tablist" aria-label="Month"></div>
+    <div id="acct"></div>
   </div>
 </header>
 <nav class="nav gutter"><div class="inner" id="nav"></div></nav>
@@ -390,7 +406,7 @@ function render(){
 function ragBar(c, total){
   if(!total) return '<div class="ragbar"></div>';
   const order=['green','amber','red','blue',''];
-  const col={green:'var(--ej-green)',amber:'var(--xlight-orange)',red:'var(--dark-orange)',blue:'var(--sky)','':'var(--grey-40)'};
+  const col={green:'var(--ej-green)',amber:'var(--xlight-orange)',red:'var(--dark-orange)',blue:'var(--sky)','':'var(--line)'};
   return `<div class="ragbar" title="${total} initiatives">${order.map(k=>c[k]?`<span style="width:${100*c[k]/total}%;background:${col[k]}" title="${RAG[k]}: ${c[k]}"></span>`:'').join('')}</div>`;
 }
 
@@ -399,18 +415,16 @@ function renderNetwork(){
     const st=baseStats(b.code);
     return `<div class="card bcard" data-go="${b.code}" role="button" tabindex="0">
       <div class="top"><span class="code">${b.code}</span><span class="name">${esc(b.name)}</span></div>
-      ${ragBar(st.counts, st.total)}
-      <div class="chips">
+      <div class="prog"><span><b>${st.updated}</b> of ${st.total} updated</span>${ragBar(st.counts, st.total)}</div>
+      <div class="flags">
         ${st.counts.green?`<span class="chip green">${st.counts.green} on track</span>`:''}
         ${st.counts.amber?`<span class="chip amber">${st.counts.amber} at risk</span>`:''}
         ${st.counts.red?`<span class="chip red">${st.counts.red} off track</span>`:''}
         ${st.counts.blue?`<span class="chip blue">${st.counts.blue} complete</span>`:''}
-        ${st.counts['']?`<span class="chip none">${st.counts['']} no status</span>`:''}
-      </div>
-      <div class="stats">
-        <div class="stat-row ${st.needs?'warn':''}"><span>Needs board</span><b>${st.needs}</b></div>
-        <div class="stat-row ${st.openB?'warn':''}"><span>Open barriers</span><b>${st.openB}</b></div>
-        <div class="stat-row ${st.fb?'ok':''}"><span>Feedback</span><b>${st.fb?'Given':'—'}</b></div>
+        ${st.needs?`<span class="chip board">${st.needs} for the board</span>`:''}
+        ${st.openB?`<span class="chip warn">${st.openB} open barrier${st.openB>1?'s':''}</span>`:''}
+        ${st.fb?'<span class="chip ok">Feedback given</span>':''}
+        ${!(st.counts.green||st.counts.amber||st.counts.red||st.counts.blue||st.needs||st.openB||st.fb)?'<span class="quiet">No statuses or flags yet</span>':''}
       </div>
     </div>`;
   }).join('');
@@ -453,20 +467,21 @@ function renderBase(base){
         </div>
         <div class="upd">
           <div class="uhead">
-            <span class="chip ${u.rag||'none'}">${RAG[u.rag||'']}</span>
+            ${u.rag?`<span class="chip ${u.rag}">${RAG[u.rag]}</span>`:''}
             ${u.needsBoard?'<span class="chip board">Needs the board</span>':''}
-            <span class="when">${u.updatedAt?`${fmtWhen(u.updatedAt)}${u.updatedBy?' · '+esc(who(u.updatedBy)):''}`:''}${u.source?' · imported':''}</span>
+            <span class="when">${u.updatedAt?`${fmtWhen(u.updatedAt)}${u.updatedBy&&S.names[u.updatedBy]&&S.names[u.updatedBy]!=='Someone'?' · '+esc(who(u.updatedBy)):''}`:''}</span>
+            ${has&&!dis?`<button class="btn sm" data-edit="${i.id}">Edit</button>`:''}
           </div>
           ${has ? `<div class="${long?'clamp':''}">${fmt(u.text)}</div>${long?`<button class="more" data-more="${i.id}">Show full update</button>`:''}` : `<p class="text empty">No ${mlabel(S.month)} update yet.</p>`}
           ${u.needsBoard && u.barrier ? `<div class="barrier"><b>Where we need the board</b>${esc(u.barrier)}</div>`:''}
           ${p && p.text ? `<details class="prev"><summary>${mlabel(pk)} update</summary>${fmt(p.text)}</details>`:''}
-          <div class="ufoot"><button class="btn sm ${has?'':'primary'}" data-edit="${i.id}" ${dis?'disabled':''}>${has?'Edit update':'Add update'}</button></div>
+          ${!has&&!dis?`<div class="ufoot"><button class="btn sm primary" data-edit="${i.id}">Add update</button></div>`:''}
         </div>
       </article>`;}).join('')}</section>`).join('');
   const fb = S.feedback[base+'_'+S.month] || {};
   const d = dis?'disabled':'';
   return `<div class="phead"><h2>${base} <small>${esc(b.name)} · ${mlabel(S.month)} · ${st.updated} of ${st.total} updated${st.needs?` · ${st.needs} flagged for the board`:''}</small></h2>
-      <div class="actions"><button class="btn" id="copyBase" data-base="${base}">Copy as text</button>${dis?'':`<button class="btn" data-newbarrier="${base}">Log a barrier</button><button class="btn" data-archbase="${base}" style="border-color:var(--grey-40);color:var(--grey)">Archive ${base}</button>`}</div></div>
+      <div class="actions"><button class="btn" id="copyBase" data-base="${base}">Copy as text</button>${dis?'':`<button class="btn" data-newbarrier="${base}">Log a barrier</button><button class="btn ghost" data-archbase="${base}">Archive ${base}</button>`}</div></div>
     ${rows || '<div class="empty">No initiatives set up for this base yet. Add them under Initiatives.</div>'}
     <section class="card" id="fbcard"><h3>Board feedback <span class="n">${mlabel(S.month)}</span></h3>
       <div class="fb">

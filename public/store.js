@@ -126,15 +126,17 @@
   }
 
   function accountBar() {
-    const bar = document.createElement('div');
-    bar.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;display:flex;gap:6px;font:12px Nunito,system-ui,sans-serif';
-    const btn = 'padding:6px 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);font:inherit;cursor:pointer;text-decoration:none;box-shadow:var(--shadow)';
-    bar.innerHTML = `<span style="${btn};cursor:default">${me.name.replace(/[&<>"']/g, '')}${me.canWrite ? '' : ' · view only'}</span>
-      <a href="/api/export" style="${btn}" title="Download every document as JSON">Export</a>
-      ${me.canWrite ? `<a href="/admin.html" style="${btn}">Import</a>` : ''}
-      <button type="button" style="${btn}" id="bbOut">Sign out</button>`;
-    document.body.appendChild(bar);
-    document.body.style.paddingBottom = '56px'; // keep the bar clear of the last card's buttons
+    // Lives in the masthead (#acct); the page styles it under .acct.
+    const bar = document.createElement('details');
+    bar.className = 'acct';
+    const name = me.name.replace(/[&<>"']/g, '');
+    bar.innerHTML = `<summary>${name} ▾</summary>
+      <div class="menu"><div class="who">Signed in as ${name}${me.canWrite ? '' : ' · view only'}</div>
+      <a href="/api/export" title="Download every document as JSON">Export data</a>
+      ${me.canWrite ? '<a href="/admin.html">Import data</a>' : ''}
+      <button type="button" id="bbOut">Sign out</button></div>`;
+    (document.getElementById('acct') || document.body).appendChild(bar);
+    document.addEventListener('click', (e) => { if (!bar.contains(e.target)) bar.open = false; });
     bar.querySelector('#bbOut').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.reload(); });
   }
 
