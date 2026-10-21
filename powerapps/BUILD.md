@@ -270,7 +270,7 @@ ClearCollect(colBaseFilter, ["All"]);
 Collect(colBaseFilter, ForAll(colBases, {Value: Code}))
 ```
 
-**The reload block.** The last part of OnStart, from `Set(varPrev, …` to the closing `)`, is referred to below as **<RELOAD BLOCK>**. Paste it wherever that appears: the month drop-downs and the Save button. It loads the selected month, the month before for comparisons, board feedback, and every flagged item for the barriers list. Each filter runs on SharePoint's side, so it keeps working as the lists grow.
+Every formula below is complete. Paste each one as it stands, with nothing to fill in.
 
 **App → StartScreen:** `scrNetwork`
 
@@ -1518,18 +1518,25 @@ OnSelect:
         Notify("Pick a status first", NotificationType.Warning),
         With({key: varInit.Key & "_" & varMonth, cur: LookUp(Updates, Title = varInit.Key & "_" & varMonth)},
             If(!varConflict && !IsBlank(cur) && (IsBlank(varUpd) || cur.Modified <> varUpd.Modified),
-                // someone saved since this screen opened: show it, and let a second click overwrite
-                Set(varConflict, true); Set(varConflictBy, cur.Editor.DisplayName); Set(varConflictAt, cur.Modified),
+                Set(varConflict, true);
+                Set(varConflictBy, cur.Editor.DisplayName);
+                Set(varConflictAt, cur.Modified),
                 IfError(
                     Patch(Updates, If(IsBlank(cur), Defaults(Updates), cur), {
-                        Title: key, InitiativeKey: varInit.Key, Base: varInit.Base, Month: varMonth,
+                        Title: key,
+                        InitiativeKey: varInit.Key,
+                        Base: varInit.Base,
+                        Month: varMonth,
                         Status: {Value: varStatus},
-                        UpdateText: txtUpdate.Text, KPIActual: txtKpiA.Text,
-                        ForBoard: tglBoard.Value, BoardAsk: If(tglBoard.Value, txtAsk.Text, ""),
+                        UpdateText: txtUpdate.Text,
+                        KPIActual: txtKpiA.Text,
+                        ForBoard: tglBoard.Value,
+                        BoardAsk: If(tglBoard.Value, txtAsk.Text, ""),
                         BarrierStatus: {Value: If(tglBoard.Value && IsBlank(cur.BarrierStatus.Value), "Open", cur.BarrierStatus.Value)},
                         RaisedOn: If(tglBoard.Value && IsBlank(cur.RaisedOn), Today(), cur.RaisedOn)
                     });
-                    <RELOAD BLOCK>  (paste from App.OnStart);
+                    ClearCollect(colUpd, Filter(Updates, Month = varMonth));
+                    ClearCollect(colBar, Filter(Updates, ForBoard = true));
                     Set(varConflict, false);
                     Notify("Update saved", NotificationType.Success);
                     Back(),
