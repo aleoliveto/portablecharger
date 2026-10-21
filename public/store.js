@@ -12,7 +12,7 @@
     if (!res.ok) {
       if (res.status === 401 && path !== 'login') showLogin();
       const err = new Error((body && body.error) || ('HTTP ' + res.status));
-      err.code = body && body.code; err.status = res.status; throw err;
+      err.code = body && body.code; err.status = res.status; err.current = body && body.current; err.currentByName = body && body.currentByName; throw err;
     }
     return body;
   }
@@ -28,7 +28,7 @@
     let list = docs;
     if (sub.filter) list = list.filter((d) => d.data && d.data[sub.filter.field] === sub.filter.value);
     if (!subs.has(sub)) return;
-    sub.cb({ docs: list.map((d) => ({ id: d.id, data: () => d.data })) });
+    sub.cb({ docs: list.map((d) => ({ id: d.id, etag: d.etag, data: () => d.data })) });
   }
   async function refresh(scopes) {
     await Promise.all([...subs].filter((s) => !scopes || scopes.some((x) => s.scope === x || (x.startsWith('updates') && s.col === 'updates' && !s.month)))
@@ -62,7 +62,13 @@
     const after = () => refresh([col === 'updates' ? 'updates:' + id.slice(-7) : col]);
     return {
       id,
-      async set(obj) { await api(path, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(obj) }); after(); },
+      // opts.ifMatch: the etag the editor started from, or null if the document didn't exist.
+      // A save that would overwrite someone else's newer version rejects with status 409.
+      async set(obj, opts) {
+        const headers = { 'content-type': 'application/json' };
+        if (opts && 'ifMatch' in opts) headers['x-if-match'] = opts.ifMatch || 'new';
+        const r = await api(path, { method: 'PUT', headers, body: JSON.stringify(obj) }); after(); return r;
+      },
       async delete() { await api(path, { method: 'DELETE' }); after(); },
     };
   }
@@ -79,6 +85,9 @@
   const db = {
     collection: collectionRef,
     doc(path) { const [col, ...rest] = path.split('/'); return docRef(col, rest.join('/')); },
+    // Not part of the artifact interface: earlier versions of a document, and one initiative across months.
+    history: (col, id) => api('history/' + encodeURIComponent(col) + '/' + encodeURIComponent(id)).then((r) => r.versions),
+    series: (initId, months) => api('series/' + encodeURIComponent(initId) + '?months=' + months.join(',')).then((r) => r.months),
   };
 
   /* ---------- sign-in ---------- */
@@ -133,7 +142,7 @@
     bar.innerHTML = `<summary>${name} ▾</summary>
       <div class="menu"><div class="who">Signed in as ${name}${me.canWrite ? '' : ' · view only'}</div>
       <a href="/api/export" title="Download every document as JSON">Export data</a>
-      ${me.canWrite ? '<a href="/admin.html">Import data</a>' : ''}
+      ${me.canWrite ? '<a href="/admin.html">Import and backups</a>' : ''}
       <button type="button" id="bbOut">Sign out</button></div>`;
     (document.getElementById('acct') || document.body).appendChild(bar);
     document.addEventListener('click', (e) => { if (!bar.contains(e.target)) bar.open = false; });

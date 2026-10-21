@@ -270,6 +270,71 @@ details.prev .text{color:var(--muted);margin-top:6px;border-left:2px solid var(-
   .toolbar .btn.ghost{margin-left:0}
 }
 
+
+/* month-on-month */
+.kpi .d{display:block;font-size:11.5px;font-weight:700;margin-top:4px}
+.d.bad{color:var(--red)}.d.good{color:var(--green)}.d.same{color:var(--faint)}
+sup.d{font-size:10.5px;margin-left:3px;vertical-align:4px}
+.tr{font-size:10px;margin-left:6px;vertical-align:1px}
+.tr.down{color:var(--red)}.tr.up{color:var(--green)}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sl{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer;flex-wrap:wrap}
+.sl:last-child{border-bottom:0}
+.sl:hover .who{text-decoration:underline}
+.sl .who{font-weight:700;margin-right:auto;font-size:13.5px}
+.sl .arrow{color:var(--faint)}
+
+/* KPI trend */
+.trend{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px}
+.trend.ro{font-size:12px}
+.trend-h{font-weight:700;font-size:12px;color:var(--faint);margin-bottom:6px}
+.spark{display:block;color:var(--muted);overflow:visible;margin-bottom:6px}
+.spark circle{fill:var(--muted);stroke:var(--surface-2);stroke-width:2}
+.spark circle.last{fill:var(--orange)}
+.trend-v{display:flex;flex-wrap:wrap;gap:4px 12px;font-variant-numeric:tabular-nums}
+.trend-v em{font-style:normal;color:var(--faint);margin-right:2px}
+
+/* barriers */
+.age{font-size:11.5px;color:var(--faint);font-weight:700;margin-top:2px}
+.age.old{color:var(--red)}
+
+/* edit window, history */
+.ragpick.need button{border-color:var(--red)}
+.conflict{background:var(--amber-soft);border:1px solid var(--xlight-orange-40);border-radius:10px;padding:12px 14px;font-size:13px;display:flex;flex-direction:column;gap:8px}
+.conflict details summary{cursor:pointer;font-weight:700;color:var(--muted)}
+.conflict details .ft{margin-top:6px}
+.conflict .row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.conflict .hint{font-size:12px;color:var(--muted)}
+.hist{display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto}
+.hv{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.hv-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.hv-h .more{margin-left:auto}
+
+/* print / PDF board pack */
+#printPack{display:none}
+@media print{
+  body>*:not(#printPack){display:none!important}
+  body{background:#fff!important}
+  #printPack{display:block;color:#1E1E1E;font-size:10.5pt;
+    --fg:#1E1E1E;--muted:#555;--faint:#888;--line:#ddd;--surface:#fff;--surface-2:#f4f4f3;
+    --green:#2E9A12;--green-bg:#ADE1A0;--amber:#8a5700;--amber-bg:#FFDD99;--red:#C23400;--red-bg:#FFB599;--blue:#07857C;--blue-bg:#9DDBD3;--none-bg:#F0F0EF;--none-fg:#696D6F;--orange-soft:#FFF0E5}
+  @page{margin:14mm}
+  .pp-cover h1{font-family:var(--display);font-size:24pt;margin:0;color:#FF6600}
+  .pp-cover>p{color:#555;margin:2px 0 14px}
+  .pp-sum{min-width:0;width:100%;border-collapse:collapse;font-size:10pt}
+  .pp-sum th,.pp-sum td{border-bottom:1px solid #ddd;padding:5px 6px;text-align:left}
+  .pp-base{break-before:page}
+  .pp-base h2{font-family:var(--display);font-size:18pt;margin:0}
+  .pp-meta{color:#555;margin:2px 0 10px}
+  .pp-it{break-inside:avoid;border-top:1px solid #ddd;padding:8px 0}
+  .pp-h{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:3px}
+  .pp-kpi{color:#555;font-size:9.5pt;margin-bottom:4px}
+  .pp-fb{break-inside:avoid;border-top:2px solid #FF6600;padding-top:6px;margin-top:6px}
+  .pp-fb h3{margin:0 0 4px;font-size:11pt}.pp-fb p{margin:2px 0}
+  #printPack .ft{max-width:none;font-size:10pt}
+  #printPack,#printPack *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+
 /* feedback card */
 #fbcard,.card.barriers{margin-top:22px}
 .card.asks .ask{display:flex;flex-direction:column;gap:4px;padding:10px 0 10px 12px;border-left:3px solid var(--orange);margin-bottom:8px}
@@ -382,13 +447,14 @@ const S = {
   view: 'network',
   inits: [], updates: {}, prevUpdates: {}, feedback: {}, barriers: [],
   db: null, user: null, uid: null, canWrite: null, names: {},
-  unsub: {}, expanded: {}, open: {}, collapsed: {}, filter: 'all', q: '',
+  unsub: {}, expanded: {}, open: {}, collapsed: {}, filter: 'all', q: '', etags: {}, series: {},
 };
 
 const $ = (s, r=document) => r.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mlabel = k => (MONTHS.find(m=>m.k===k)||{l:k}).l;
 const prevKey = k => { const i=MONTHS.findIndex(m=>m.k===k); return i>0 ? MONTHS[i-1].k : null; };
+const fmtStamp = iso => { const d=new Date(iso); return isNaN(d) ? '' : d.toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); };
 const fmtWhen = iso => { if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); };
 let toastT; const toast = m => { const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, 2200); };
 const who = id => id ? (S.names[id] || 'Someone') : '';
@@ -396,12 +462,13 @@ const who = id => id ? (S.names[id] || 'Someone') : '';
 /* ---------- data ---------- */
 function initsFor(base){ return S.inits.filter(i=>i.base===base && !i.archived).sort((a,b)=>(a.order||0)-(b.order||0)); }
 function upd(initId, month=S.month){ return (month===S.month ? S.updates : S.prevUpdates)[initId+'_'+month]; }
-function baseStats(base){
+// month is S.month or the month before it (the two that are loaded).
+function baseStats(base, month=S.month){
   const list = initsFor(base);
   const counts = {green:0,amber:0,red:0,blue:0,'':0}; let updated=0, needs=0;
-  list.forEach(i=>{ const u=upd(i.id); if(u && (u.text||u.rag)){ updated++; counts[u.rag in counts ? u.rag : '']++; if(u.needsBoard) needs++; } else counts['']++; });
+  list.forEach(i=>{ const u=upd(i.id, month); if(u && (u.text||u.rag)){ updated++; counts[u.rag in counts ? u.rag : '']++; if(u.needsBoard) needs++; } else counts['']++; });
   const openB = S.barriers.filter(b=>b.base===base && b.status!=='resolved').length;
-  const fb = S.feedback[base+'_'+S.month];
+  const fb = S.feedback[base+'_'+month];
   return {total:list.length, updated, counts, needs, openB, fb: !!(fb && (fb.working||fb.focus||fb.actions))};
 }
 
@@ -465,45 +532,99 @@ function snippet(text){
 const statusCell = u => u && u.rag ? `<span class="chip ${u.rag}">${RAG[u.rag]}</span>`
   : u && u.text ? '<span class="nostat">No status</span>' : '<span class="nostat missing">Not updated</span>';
 const num = (n, cls='') => n ? `<b class="${cls}">${n}</b>` : '<span class="zero">–</span>';
+// Month-on-month: how far an initiative's status moved since last month. On track and
+// complete count as the same level, so finishing something is never a "slip".
+const RANK = {green:0, blue:0, amber:1, red:2};
+function moved(initId){
+  const pk=prevKey(S.month); if(!pk) return 0;
+  const c=upd(initId), p=upd(initId,pk);
+  if(!(c&&c.rag in RANK) || !(p&&p.rag in RANK)) return 0;
+  return RANK[c.rag]-RANK[p.rag];
+}
+const trendMark = initId => { const m=moved(initId); if(!m) return ''; const p=upd(initId,prevKey(S.month));
+  return `<span class="tr ${m>0?'down':'up'}" title="${RAG[p.rag]} in ${mlabel(prevKey(S.month))}">${m>0?'▼':'▲'}</span>`; };
+// Change since last month, worded and coloured by whether a rise is good or bad.
+const delta = (now, before, upIsBad) => { if(before==null) return ''; const d=now-before; if(!d) return `<span class="d same">same as ${mlabel(prevKey(S.month))}</span>`;
+  const bad = upIsBad ? d>0 : d<0; return `<span class="d ${bad?'bad':'good'}">${d>0?'▲':'▼'} ${Math.abs(d)} vs ${mlabel(prevKey(S.month))}</span>`; };
 
 function renderNetwork(){
-  const rows = BASES.map(b=>({b, st:baseStats(b.code)}));
+  const pk = prevKey(S.month);
+  const rows = BASES.map(b=>({b, st:baseStats(b.code), pst: pk ? baseStats(b.code, pk) : null}));
+  const P = pk ? rows.reduce((a,{pst})=>{ a.green+=pst.counts.green+pst.counts.blue; a.red+=pst.counts.red; a.amber+=pst.counts.amber; a.needs+=pst.needs; return a; }, {green:0,red:0,amber:0,needs:0}) : null;
+  const slipped = [];
+  if(pk) BASES.forEach(b=>initsFor(b.code).forEach(i=>{ if(moved(i.id)>0) slipped.push({b:b.code, i, from:upd(i.id,pk).rag, to:upd(i.id).rag}); }));
   const T = rows.reduce((a,{st})=>{ a.total+=st.total; a.updated+=st.updated; a.red+=st.counts.red; a.amber+=st.counts.amber; a.green+=st.counts.green; a.blue+=st.counts.blue; a.needs+=st.needs; a.openB+=st.openB; a.fb+=st.fb?1:0; return a; }, {total:0,updated:0,red:0,amber:0,green:0,blue:0,needs:0,openB:0,fb:0});
   const needs = [];
   BASES.forEach(b=> initsFor(b.code).forEach(i=>{ const u=upd(i.id); if(u&&u.needsBoard) needs.push({b:b.code,i,u}); }));
   const net = S.feedback['NET_'+S.month] || {};
   const dis = S.canWrite===false ? 'disabled' : '';
-  const kpi = (n,l,cls,sub) => `<div class="kpi ${n&&cls?cls:''}"><div class="v">${n}${sub?`<small>${sub}</small>`:''}</div><div class="l">${l}</div></div>`;
+  // Small "+1 / -1 since last month" beside a count in the table; a rise is bad for these columns.
+  const chg = (n, before) => { if(before==null || n===before) return ''; const d=n-before; return `<sup class="d ${d>0?'bad':'good'}">${d>0?'+':'−'}${Math.abs(d)}</sup>`; };
+  const kpi = (n,l,cls,sub,d='') => `<div class="kpi ${n&&cls?cls:''}"><div class="v">${n}${sub?`<small>${sub}</small>`:''}</div><div class="l">${l}</div>${d}</div>`;
   return `<div class="phead"><h2>Network <small>${mlabel(S.month)} · ${BASES.length} bases · ${T.total} initiatives</small></h2>
-      <div class="actions"><button class="btn" id="copyNet">Copy month summary</button></div></div>
+      <div class="actions"><details class="pop"><summary class="btn">Export</summary><div class="menu">
+        <button id="xlsx">Excel workbook (.xlsx)</button><button id="pdfPack">Board pack (print or PDF)</button><button id="copyNet">Copy summary as text</button></div></details></div></div>
     <div class="kpis">
-      ${kpi(T.updated,'Updates in','', ' / '+T.total)}
-      ${kpi(T.red,'Off track','bad')}
-      ${kpi(T.amber,'At risk','warn')}
-      ${kpi(T.needs,'For the board','hot')}
+      ${kpi(T.updated,'Updates in','', ' / '+T.total, T.total-T.updated?`<span class="d bad">${T.total-T.updated} still to come</span>`:'<span class="d good">All in</span>')}
+      ${kpi(T.green+T.blue,'On track or complete','', '', P?delta(T.green+T.blue,P.green,false):'')}
+      ${kpi(T.amber,'At risk','warn','', P?delta(T.amber,P.amber,true):'')}
+      ${kpi(T.red,'Off track','bad','', P?delta(T.red,P.red,true):'')}
+      ${kpi(T.needs,'For the board','hot','', P?delta(T.needs,P.needs,true):'')}
       ${kpi(T.openB,'Open barriers','bad')}
-      ${kpi(T.fb,'Feedback given','', ' / '+BASES.length)}
     </div>
     ${BASES.length ? `<div class="card flush"><div class="tablewrap"><table class="ntable">
       <thead><tr><th>Base</th><th class="c">Updated</th><th class="c">On track</th><th class="c">At risk</th><th class="c">Off track</th><th class="c">Complete</th><th class="c">For board</th><th class="c">Barriers</th><th class="c">Feedback</th></tr></thead>
-      <tbody>${rows.map(({b,st})=>{ const missing=st.total-st.updated; return `<tr class="link" data-go="${b.code}" tabindex="0">
+      <tbody>${rows.map(({b,st,pst})=>{ const missing=st.total-st.updated; return `<tr class="link" data-go="${b.code}" tabindex="0">
         <td><span class="bcode">${b.code}</span> <span class="bname">${esc(b.name)}</span></td>
         <td class="c"><b>${st.updated}</b><span class="of">/${st.total}</span>${missing?`<div class="miss">${missing} missing</div>`:''}</td>
-        <td class="c">${num(st.counts.green,'t-green')}</td><td class="c">${num(st.counts.amber,'t-amber')}</td><td class="c">${num(st.counts.red,'t-red')}</td><td class="c">${num(st.counts.blue,'t-blue')}</td>
+        <td class="c">${num(st.counts.green,'t-green')}</td><td class="c">${num(st.counts.amber,'t-amber')}${chg(st.counts.amber,pst&&pst.counts.amber)}</td><td class="c">${num(st.counts.red,'t-red')}${chg(st.counts.red,pst&&pst.counts.red)}</td><td class="c">${num(st.counts.blue,'t-blue')}</td>
         <td class="c">${st.needs?`<span class="chip board" data-go="${b.code}" data-f="board">${st.needs}</span>`:'<span class="zero">–</span>'}</td>
         <td class="c">${num(st.openB,'t-red')}</td>
         <td class="c">${st.fb?'<span class="t-green">✓</span>':'<span class="zero">–</span>'}</td>
       </tr>`; }).join('')}</tbody></table></div></div>` : '<div class="empty">No bases on the board yet. Add one under Initiatives.</div>'}
-    <div class="net2">
+    <div class="net2"><div class="stack">
+      ${pk?`<div class="card slipped"><h3>Slipped since ${mlabel(pk)} <span class="n">${slipped.length}</span></h3>
+        ${slipped.length ? slipped.map(x=>`<div class="sl" data-go="${x.b}"><span class="who">${x.b} · ${esc(x.i.focusArea||x.i.detail.split('\n')[0])}</span><span class="chip ${x.from}">${RAG[x.from]}</span><span class="arrow">→</span><span class="chip ${x.to}">${RAG[x.to]}</span></div>`).join('')
+          : `<div class="empty">Nothing has slipped since ${mlabel(pk)}.</div>`}</div>`:''}
       <div class="card asks"><h3>Asks of the board <span class="n">${needs.length}</span></h3>
         ${needs.length ? needs.map(n=>`<div class="ask"><div class="t"><span>${n.b} · ${esc(n.i.focusArea||n.i.detail.split('\n')[0])}</span><button class="more" data-go="${n.b}" data-f="board">Open</button></div>
           <p>${esc(n.u.barrier||'(no detail given)')}</p></div>`).join('') : '<div class="empty">Nothing flagged for the board this month.</div>'}
-      </div>
+      </div></div>
       <div class="card notes"><h3>Board meeting notes</h3>
         <div class="field"><textarea id="netNotes" placeholder="Themes across the network, decisions taken, who's doing what by when…" ${dis}>${esc(net.notes||'')}</textarea></div>
-        <div class="fbfoot"><span>${net.updatedAt?`Saved ${fmtWhen(net.updatedAt)}${net.updatedBy?' by '+esc(who(net.updatedBy)):''}`:''}</span><button class="btn primary sm" id="saveNet" ${dis}>Save notes</button></div>
+        <div class="fbfoot"><span id="netState">${net.updatedAt?`Saved ${fmtWhen(net.updatedAt)}${net.updatedBy?' by '+esc(who(net.updatedBy)):''}`:''}</span><span>${dis?'':'Saves as you type'}</span></div>
       </div>
     </div>`;
+}
+
+const kpiNum = v => { const m=String(v||'').replace(/,/g,'').match(/-?\d+(?:\.\d+)?/); return m ? parseFloat(m[0]) : null; };
+function loadSeries(initId){
+  if(S.series[initId]) return;
+  S.series[initId]='loading';
+  S.db.series(initId, MONTHS.map(m=>m.k)).then(r=>{ S.series[initId]=r; render(); }).catch(()=>{ S.series[initId]='error'; render(); });
+}
+// One small line of the KPI actuals recorded up to the selected month, with the values written out beside it.
+function kpiTrend(i){
+  if(!i.kpi && !(upd(i.id)||{}).kpiActual) return '';
+  const ser=S.series[i.id];
+  if(!ser){ setTimeout(()=>loadSeries(i.id)); return '<div class="trend ro">Loading KPI actuals…</div>'; }
+  if(ser==='loading') return '<div class="trend ro">Loading KPI actuals…</div>';
+  if(ser==='error') return '';
+  const pk=prevKey(S.month);
+  const pts = MONTHS.filter(m=>m.k<=S.month).map(m=>{
+    const u = m.k===S.month ? upd(i.id) : m.k===pk ? upd(i.id,pk) : ser[m.k];
+    return {k:m.k, l:m.l, raw:u&&u.kpiActual||'', v:kpiNum(u&&u.kpiActual)};
+  }).filter(p=>p.raw);
+  if(!pts.length) return `<div class="trend ro">No KPI actuals recorded yet. Add one with the ${mlabel(S.month)} update.</div>`;
+  const nums=pts.filter(p=>p.v!=null);
+  let svg='';
+  if(nums.length>=2){
+    const W=200,H=44,P=6; const lo=Math.min(...nums.map(p=>p.v)), hi=Math.max(...nums.map(p=>p.v)); const span=hi-lo||1;
+    const x=n=>P+n*(W-2*P)/(nums.length-1), y=v=>H-P-(v-lo)*(H-2*P)/span;
+    const d=nums.map((p,n)=>`${n?'L':'M'}${x(n).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
+    svg=`<svg class="spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="KPI actuals by month"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${nums.map((p,n)=>`<circle cx="${x(n).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="4" class="${n===nums.length-1?'last':''}"><title>${esc(p.l)}: ${esc(p.raw)}</title></circle>`).join('')}</svg>`;
+  }
+  return `<div class="trend"><div class="trend-h">KPI actuals</div>${svg}<div class="trend-v">${pts.map(p=>`<span><em>${esc(p.l)}</em> ${esc(p.raw)}</span>`).join('')}</div></div>`;
 }
 
 const FILTERS = [
@@ -534,9 +655,9 @@ function renderBase(base){
     const sub = i.focusArea ? i.detail.split('\n')[0] : '';
     return `<div class="it ${open?'open':''} rag-${u.rag||'none'}" id="r-${i.id}">
       <div class="it-row" data-toggle="${i.id}" role="button" tabindex="0" aria-expanded="${open}">
-        <div class="c-st">${statusCell(u)}</div>
+        <div class="c-st">${statusCell(u)}${trendMark(i.id)}</div>
         <div class="c-ti"><div class="ti">${esc(title)}${u.needsBoard?' <span class="chip board">Board</span>':''}</div>${sub?`<div class="sub">${esc(sub)}</div>`:''}</div>
-        <div class="c-kpi">${i.kpi?esc(i.kpi.split('\n')[0]):'<span class="zero">–</span>'}</div>
+        <div class="c-kpi">${u.kpiActual?`<b>${esc(u.kpiActual)}</b> `:''}${i.kpi?esc(i.kpi.split('\n')[0]):(u.kpiActual?'':'<span class="zero">–</span>')}</div>
         <div class="c-up">${has&&u.text?esc(snippet(u.text)):`<span class="zero">${has?'':'No '+mlabel(S.month)+' update'}</span>`}</div>
         <div class="c-when">${u.updatedAt?fmtWhen(u.updatedAt):''}</div>
         <div class="c-chev" aria-hidden="true">›</div>
@@ -545,12 +666,13 @@ function renderBase(base){
         <div class="def">
           ${detail?`<p class="dt">${esc(detail)}</p>`:''}
           <dl class="kv">${i.kpi?`<div><dt>KPI</dt><dd>${esc(i.kpi)}</dd></div>`:''}${i.baseline?`<div><dt>S25 baseline</dt><dd>${esc(i.baseline)}</dd></div>`:''}</dl>
+          ${kpiTrend(i)}
         </div>
         <div class="upd">
           ${has ? fmt(u.text) : `<p class="text empty">No ${mlabel(S.month)} update yet.</p>`}
           ${u.needsBoard && u.barrier ? `<div class="barrier"><b>Where we need the board</b>${esc(u.barrier)}</div>`:''}
           ${p && p.text ? `<details class="prev"><summary>${mlabel(pk)} update</summary>${fmt(p.text)}</details>`:''}
-          <div class="ufoot">${dis?'':`<button class="btn sm ${has?'':'primary'}" data-edit="${i.id}">${has?'Edit update':'Add update'}</button>`}<span class="when">${u.updatedAt?`Saved ${fmtWhen(u.updatedAt)}${u.updatedBy&&S.names[u.updatedBy]&&S.names[u.updatedBy]!=='Someone'?' by '+esc(who(u.updatedBy)):''}`:''}</span></div>
+          <div class="ufoot">${dis?'':`<button class="btn sm ${has?'':'primary'}" data-edit="${i.id}">${has?'Edit update':'Add update'}</button>`}<button class="more" data-history="${i.id}">History</button><span class="when">${u.updatedAt?`Saved ${fmtWhen(u.updatedAt)}${u.updatedBy&&S.names[u.updatedBy]&&S.names[u.updatedBy]!=='Someone'?' by '+esc(who(u.updatedBy)):''}`:''}</span></div>
         </div>
       </div>`:''}
     </div>`;
@@ -577,18 +699,20 @@ function renderBase(base){
         <div><label for="fbFocus">Focus areas</label><textarea id="fbFocus" ${d} placeholder="Where the board wants attention next month…">${esc(fb.focus||'')}</textarea></div>
         <div><label for="fbActions">Board actions</label><textarea id="fbActions" ${d} placeholder="What the board or central teams will do, and who owns it…">${esc(fb.actions||'')}</textarea></div>
       </div>
-      <div class="fbfoot"><span>${fb.updatedAt?`Saved ${fmtWhen(fb.updatedAt)}${fb.updatedBy?' by '+esc(who(fb.updatedBy)):''}`:'Not yet given this month.'}</span><button class="btn primary sm" id="saveFb" data-base="${base}" ${d}>Save feedback</button></div>
+      <div class="fbfoot"><span id="fbState">${fb.updatedAt?`Saved ${fmtWhen(fb.updatedAt)}${fb.updatedBy?' by '+esc(who(fb.updatedBy)):''}`:'Not yet given this month.'}</span><span>${d?'':'Saves as you type'}</span></div>
     </section>
-    ${(()=>{ const bl=S.barriers.filter(x=>x.base===base && x.status!=='resolved'); return bl.length?`<section class="card barriers"><h3>Open barriers <span class="n">${bl.length}</span></h3>${barrierTable(bl)}</section>`:''; })()}`;
+    ${(()=>{ const bl=S.barriers.filter(x=>x.base===base && x.status!=='resolved').sort(byAge); return bl.length?`<section class="card barriers"><h3>Open barriers <span class="n">${bl.length}</span></h3>${barrierTable(bl)}</section>`:''; })()}`;
 }
 
+const daysOpen = x => Math.max(0, Math.floor((Date.now() - Date.parse(x.raisedAt || (x.month+'-01')))/86400000));
+const byAge = (a,b) => (a.status==='resolved')-(b.status==='resolved') || Date.parse(a.raisedAt||a.month+'-01')-Date.parse(b.raisedAt||b.month+'-01');
 function barrierTable(list){
   const dis = S.canWrite===false?'disabled':'';
   return `<div class="tablewrap"><table><thead><tr><th>Base</th><th>Barrier</th><th>Raised</th><th>Status</th><th>Owner</th><th>Board action</th></tr></thead><tbody>
   ${list.map(x=>{ const init=S.inits.find(i=>i.id===x.initiative); return `<tr data-bid="${x.id}">
     <td><span class="b">${x.base}</span></td>
     <td><div class="desc">${esc(x.description)}</div>${init?`<div class="ro">${esc(init.focusArea||init.detail.split('\n')[0])}</div>`:''}</td>
-    <td style="white-space:nowrap">${mlabel(x.month)}</td>
+    <td style="white-space:nowrap">${mlabel(x.month)}${x.status!=='resolved'?(()=>{ const d=daysOpen(x); return `<div class="age ${d>=30?'old':''}">${d} day${d===1?'':'s'} open</div>`; })():''}</td>
     <td><select id="b-${x.id}-status" class="st st-${x.status}" data-bf="status" ${dis}>${Object.entries(BSTATUS).map(([k,l])=>`<option value="${k}" ${x.status===k?'selected':''}>${l}</option>`).join('')}</select></td>
     <td><input type="text" id="b-${x.id}-owner" data-bf="owner" value="${esc(x.owner||'')}" placeholder="Who" ${dis}></td>
     <td><input type="text" id="b-${x.id}-action" data-bf="action" value="${esc(x.action||'')}" placeholder="What the board will do" ${dis}></td>
@@ -596,10 +720,10 @@ function barrierTable(list){
 }
 function renderBarriers(){
   const f = S.bfilter || {base:'', status:'live'};
-  let list = S.barriers.slice().sort((a,b)=> (a.status==='resolved')-(b.status==='resolved') || (b.month||'').localeCompare(a.month||''));
+  let list = S.barriers.slice().sort(byAge);
   if(f.base) list=list.filter(x=>x.base===f.base);
   if(f.status==='live') list=list.filter(x=>x.status!=='resolved'); else if(f.status) list=list.filter(x=>x.status===f.status);
-  return `<div class="phead"><h2>Barriers <small>Everything the bases have asked the board to help clear. Change status, owner or action in place; it saves as you go.</small></h2>
+  return `<div class="phead"><h2>Barriers <small>Everything the bases have asked the board to help clear, oldest first. Change status, owner or action in place; it saves as you go.</small></h2>
     <div class="actions">${S.canWrite===false?'':'<button class="btn primary" data-newbarrier="">Log a barrier</button>'}</div></div>
     <div class="filters">
       <select id="bfBase"><option value="">All bases</option>${BASES.map(b=>`<option ${f.base===b.code?'selected':''}>${b.code}</option>`).join('')}</select>
@@ -626,14 +750,19 @@ function closeModal(){ $('#modalRoot').innerHTML=''; }
 
 function editUpdate(initId){
   const i=S.inits.find(x=>x.id===initId); if(!i) return;
+  const id=initId+'_'+S.month;
   const u=upd(initId)||{}; const pk=prevKey(S.month); const p=pk?upd(initId,pk):null;
+  // The version this edit starts from; saving over a newer one is refused (see store.js).
+  const startEtag = S.updates[id] ? S.etags['updates/'+id] : null;
   openModal(`<div><h2>${esc(i.base)} · ${esc(i.focusArea||i.detail.split('\n')[0])}</h2><div class="ctx">${mlabel(S.month)} update${i.kpi?` · KPI: ${esc(i.kpi).replace(/\n/g,', ')}`:''}</div></div>
-    <div class="field"><label>Status</label><div class="ragpick" id="ragpick">${['green','amber','red','blue',''].map(k=>`<button type="button" data-rag="${k}" class="${(u.rag||'')===k?'on':''}">${RAG[k]}</button>`).join('')}</div></div>
+    <div class="field"><label>Status</label><div class="ragpick" id="ragpick">${['green','amber','red','blue'].map(k=>`<button type="button" data-rag="${k}" class="${u.rag===k?'on':''}">${RAG[k]}</button>`).join('')}</div></div>
     <div class="field"><label for="uText">What's happened this month</label><textarea id="uText" style="min-height:220px" placeholder="Completed, ongoing, forthcoming. Keep it to what the base did and what it changed.">${esc(u.text||'')}</textarea>
       ${p&&p.text&&!u.text?`<div class="hint"><button type="button" class="more" id="copyPrev">Start from the ${mlabel(pk)} text</button></div>`:''}</div>
+    <div class="field"><label for="uKpiA">KPI actual this month <span class="ro">optional</span></label><input type="text" id="uKpiA" value="${esc(u.kpiActual||'')}" placeholder="${p&&p.kpiActual?`${esc(mlabel(pk))}: ${esc(p.kpiActual)}`:'e.g. 0.31 or 87%'}" style="max-width:260px"></div>
     <div class="field"><label class="check"><input type="checkbox" id="uNeeds" ${u.needsBoard?'checked':''}> Flag for the board</label>
       <div id="barrierWrap" ${u.needsBoard?'':'hidden'} style="margin-top:8px"><textarea id="uBarrier" style="min-height:80px" placeholder="What's in the way and what you need from the board or central teams.">${esc(u.barrier||'')}</textarea>
       <div class="hint">This also logs it on the Barriers tab so the board can assign an owner and track it.</div></div></div>
+    <div id="conflict" hidden></div>
     <div class="foot"><span class="ro" id="mLeft">${(u.text||u.rag)?`<button type="button" class="more" id="mRemove" style="color:var(--red)">Remove this update</button>&nbsp;&nbsp;`:''}${u.updatedAt?`Last saved ${fmtWhen(u.updatedAt)}${u.updatedBy?' by '+esc(who(u.updatedBy)):''}`:''}</span>
       <div class="right"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mSave">Save update</button></div></div>`);
   const rm=$('#mRemove'); if(rm) rm.addEventListener('click',()=>{
@@ -641,24 +770,67 @@ function editUpdate(initId){
     $('#mRemoveNo').addEventListener('click',()=>editUpdate(initId));
     $('#mRemoveYes').addEventListener('click',async()=>{
       if(!S.db){ toast('Not connected'); return; }
-      try{ await S.db.doc('updates/'+i.id+'_'+S.month).delete(); const bid=i.id+'_'+S.month; if(S.barriers.some(b=>b.id===bid)) await S.db.doc('barriers/'+bid).delete(); toast('Update removed'); closeModal(); }
+      try{ await S.db.doc('updates/'+id).delete(); if(S.barriers.some(b=>b.id===id)) await S.db.doc('barriers/'+id).delete(); delete S.series[initId]; toast('Update removed. It can be restored from History.'); closeModal(); }
       catch(e){ toast('Couldn\'t remove: '+(e&&e.message||'try again')); }
     });
   });
   let rag=u.rag||'';
-  $('#ragpick').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; rag=b.dataset.rag; $('#ragpick').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); });
+  $('#ragpick').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; rag=b.dataset.rag; $('#ragpick').classList.remove('need'); $('#ragpick').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); });
   $('#uNeeds').addEventListener('change',e=>{ $('#barrierWrap').hidden=!e.target.checked; });
   const cp=$('#copyPrev'); if(cp) cp.addEventListener('click',()=>{ if(!$('#uText').value.trim()) $('#uText').value=p.text; });
   $('#mCancel').addEventListener('click',closeModal);
-  $('#mSave').addEventListener('click',async()=>{
+  const doSave = async (opts) => {
     const text=$('#uText').value.trim(); const needs=$('#uNeeds').checked; const barrier=needs?$('#uBarrier').value.trim():'';
-    const doc={base:i.base, initiative:i.id, month:S.month, text, rag, needsBoard:needs, barrier, updatedAt:new Date().toISOString(), updatedBy:S.uid||null};
-    const ok = await save(S.db.doc('updates/'+i.id+'_'+S.month), doc, 'Update saved');
-    if(ok && needs && barrier){
-      const bid=i.id+'_'+S.month; const ex=S.barriers.find(b=>b.id===bid);
-      await save(S.db.doc('barriers/'+bid), {base:i.base, initiative:i.id, month:S.month, description:barrier, status:ex?ex.status:'open', owner:ex?ex.owner||'':'', action:ex?ex.action||'':'', raisedBy:S.uid||null, updatedAt:new Date().toISOString()});
+    const doc={base:i.base, initiative:i.id, month:S.month, text, rag, kpiActual:$('#uKpiA').value.trim(), needsBoard:needs, barrier, updatedAt:new Date().toISOString(), updatedBy:S.uid||null};
+    try { await S.db.doc('updates/'+id).set(doc, opts); }
+    catch(e){
+      if(e && e.status===409){ showConflict(e.current, e.currentByName); return; }
+      toast('Couldn\'t save: '+(e&&e.message||'try again')); return;
     }
-    if(ok) closeModal();
+    toast('Update saved'); delete S.series[initId];
+    if(needs && barrier){
+      const ex=S.barriers.find(b=>b.id===id); const now=new Date().toISOString();
+      await save(S.db.doc('barriers/'+id), {base:i.base, initiative:i.id, month:S.month, description:barrier, status:ex?ex.status:'open', owner:ex?ex.owner||'':'', action:ex?ex.action||'':'', raisedBy:ex?ex.raisedBy||null:(S.uid||null), raisedAt:ex?(ex.raisedAt||null):now, updatedAt:now});
+    }
+    closeModal();
+  };
+  // Someone saved this update while the window was open: show theirs, let the user choose.
+  const showConflict = (cur, byName) => {
+    const c=$('#conflict'); c.hidden=false;
+    c.innerHTML=`<div class="conflict"><b>${byName?esc(byName):'Someone else'} ${cur?'saved':'removed'} this update${cur&&cur.updatedAt?' at '+fmtStamp(cur.updatedAt):''} while you were editing.</b>
+      ${cur?`<details><summary>See their version</summary>${cur.rag?`<span class="chip ${cur.rag}">${RAG[cur.rag]}</span>`:''}${fmt(cur.text)}</details>`:'<p>They removed it.</p>'}
+      <div class="row-btns"><button class="btn sm primary" id="keepMine">Save mine over theirs</button><button class="btn sm" id="useTheirs">Discard mine, keep theirs</button></div>
+      <div class="hint">Whichever is replaced stays in History.</div></div>`;
+    $('#keepMine').addEventListener('click',()=>doSave());
+    $('#useTheirs').addEventListener('click',closeModal);
+  };
+  $('#mSave').addEventListener('click',()=>{
+    if(!rag){ $('#ragpick').classList.add('need'); toast('Pick a status first'); return; }
+    doSave(startEtag!==undefined ? {ifMatch:startEtag} : undefined);
+  });
+}
+
+async function showHistory(initId){
+  const i=S.inits.find(x=>x.id===initId); if(!i) return;
+  const id=initId+'_'+S.month;
+  openModal(`<div><h2>History · ${esc(i.focusArea||i.detail.split('\n')[0])}</h2><div class="ctx">${esc(i.base)} · ${mlabel(S.month)} update. A version is kept whenever someone else saves over it, or it's removed.</div></div>
+    <div id="hist" class="hist"><div class="ro">Loading…</div></div>
+    <div class="foot"><span></span><div class="right"><button class="btn" id="mCancel">Close</button></div></div>`);
+  $('#mCancel').addEventListener('click',closeModal);
+  let versions;
+  try{ versions=await S.db.history('updates', id); }catch(e){ $('#hist').innerHTML='<div class="ro">Couldn\'t load the history. Try again.</div>'; return; }
+  const cur=S.updates[id]; const canRestore=S.canWrite!==false;
+  const card=(d,label,n)=>`<div class="hv"><div class="hv-h">${d.rag?`<span class="chip ${d.rag}">${RAG[d.rag]}</span>`:''}<span>${label}</span>${n!=null&&canRestore?`<button class="more" data-restore="${n}">Restore this version</button>`:''}</div>
+    ${d.kpiActual?`<div class="ro">KPI actual: ${esc(d.kpiActual)}</div>`:''}${fmt(d.text)}${d.needsBoard&&d.barrier?`<div class="ro">Board ask: ${esc(d.barrier)}</div>`:''}</div>`;
+  const out=[];
+  if(cur) out.push(card(cur, `<b>Current</b> · saved ${fmtWhen(cur.updatedAt)}${cur.updatedBy&&S.names[cur.updatedBy]&&S.names[cur.updatedBy]!=='Someone'?' by '+esc(who(cur.updatedBy)):''}`, null));
+  versions.forEach((v,n)=>out.push(card(v.data, `<b>${v.action==='delete'?'Removed':'Replaced'}</b> ${fmtStamp(v.replacedAt)} by ${esc(v.replacedBy||'someone')}`, n)));
+  if(!versions.length) out.push('<div class="ro">No earlier versions yet.</div>');
+  $('#hist').innerHTML=out.join('');
+  $('#hist').addEventListener('click',async e=>{
+    const r=e.target.closest('[data-restore]'); if(!r) return;
+    const doc=Object.assign({}, versions[+r.dataset.restore].data, {updatedAt:new Date().toISOString(), updatedBy:S.uid||null});
+    if(await save(S.db.doc('updates/'+id), doc, 'Version restored')){ delete S.series[initId]; closeModal(); }
   });
 }
 
@@ -674,7 +846,8 @@ function newBarrier(base){
   $('#mSave').addEventListener('click',async()=>{
     const desc=$('#nbDesc').value.trim(); if(!desc){ toast('Describe the barrier first'); return; }
     const ref=S.db.collection('barriers').doc();
-    const ok=await save(ref,{base:$('#nbBase').value, initiative:$('#nbInit').value||null, month:S.month, description:desc, status:'open', owner:'', action:'', raisedBy:S.uid||null, updatedAt:new Date().toISOString()},'Barrier logged');
+    const now=new Date().toISOString();
+    const ok=await save(ref,{base:$('#nbBase').value, initiative:$('#nbInit').value||null, month:S.month, description:desc, status:'open', owner:'', action:'', raisedBy:S.uid||null, raisedAt:now, updatedAt:now},'Barrier logged');
     if(ok) closeModal();
   });
 }
@@ -730,12 +903,24 @@ async function save(ref, doc, msg){
   try { await ref.set(doc); if(msg) toast(msg); return true; }
   catch(e){ if(e && e.code==='invalid_argument' && S.canWrite===null){ S.canWrite=false; render(); } toast('Couldn\'t save: '+(e&&e.message||'try again')); return false; }
 }
-let fbTimer;
-async function saveFeedback(key, fields){
-  const prev=S.feedback[key]||{};
-  const doc=Object.assign({}, prev, fields, {key, month:S.month, updatedAt:new Date().toISOString(), updatedBy:S.uid||null});
-  await save(S.db.doc('feedback/'+key), doc, 'Saved');
+// Board feedback and notes save themselves shortly after typing stops, and immediately
+// when the viewer switches month or tab, so nothing typed in a meeting is lost.
+let fbTimer=null, fbPending=null;
+function queueFeedback(key, fields, stateId){
+  fbPending={key, month:S.month, fields, stateId};
+  clearTimeout(fbTimer); fbTimer=setTimeout(flushFeedback, 900);
+  const el=document.getElementById(stateId); if(el) el.textContent='Saving…';
 }
+async function flushFeedback(){
+  clearTimeout(fbTimer); const p=fbPending; fbPending=null; if(!p) return;
+  const prev=S.feedback[p.key]||{};
+  const doc=Object.assign({}, prev, p.fields, {key:p.key, month:p.month, updatedAt:new Date().toISOString(), updatedBy:S.uid||null});
+  const ok=await save(S.db.doc('feedback/'+p.key), doc, null);
+  const el=document.getElementById(p.stateId); if(el) el.textContent = ok ? 'Saved' : 'Not saved. Check your connection and keep typing to retry.';
+}
+const feedbackFields = () => ({base:S.view, working:$('#fbWorking').value.trim(), focus:$('#fbFocus').value.trim(), actions:$('#fbActions').value.trim()});
+window.addEventListener('beforeunload', e=>{ if(fbPending){ flushFeedback(); e.preventDefault(); e.returnValue=''; } });
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) flushFeedback(); });
 async function patchBarrier(id, field, value){
   const b=S.barriers.find(x=>x.id===id); if(!b) return;
   if(b[field]===value) return;
@@ -749,7 +934,7 @@ function subscribeMonth(){
   ['cur','prev'].forEach(k=>{ if(S.unsub[k]){ S.unsub[k](); delete S.unsub[k]; } });
   S.updates={}; S.prevUpdates={};
   const q=S.db.collection('updates').where('month','==',S.month);
-  S.unsub.cur=q.onSnapshot(snap=>{ S.updates={}; snap.docs.forEach(d=>{ S.updates[d.id]=d.data(); }); collectNames(); render(); }, err=>console.warn('updates',err));
+  S.unsub.cur=q.onSnapshot(snap=>{ S.updates={}; snap.docs.forEach(d=>{ S.updates[d.id]=d.data(); S.etags['updates/'+d.id]=d.etag; }); collectNames(); render(); }, err=>console.warn('updates',err));
   const pk=prevKey(S.month);
   if(pk){ S.unsub.prev=S.db.collection('updates').where('month','==',pk).onSnapshot(snap=>{ S.prevUpdates={}; snap.docs.forEach(d=>{ S.prevUpdates[d.id]=d.data(); }); render(); }, err=>console.warn('prev',err)); }
 }
@@ -796,16 +981,62 @@ function networkText(){
 }
 async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast('Copied'); }catch(e){ openModal(`<div><h2>Copy this text</h2></div><textarea style="min-height:300px" id="cpTa">${esc(t)}</textarea><div class="foot"><span></span><div class="right"><button class="btn" id="mCancel">Close</button></div></div>`); const ta=$('#cpTa'); ta.select(); $('#mCancel').addEventListener('click',closeModal); } }
 
+/* ---------- exports ---------- */
+const plain = t => String(t||'').replace(/\t/g,' ').trim();
+function loadXlsx(){
+  if(window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='/vendor/xlsx-0.18.5.full.min.js';
+    sc.onload=()=>res(window.XLSX); sc.onerror=()=>rej(new Error('Couldn\'t load the Excel exporter')); document.head.appendChild(sc); });
+}
+// The selected month as a workbook: network summary, every update, barriers and board feedback.
+async function exportXlsx(){
+  let X; try{ toast('Preparing workbook…'); X=await loadXlsx(); }catch(e){ toast(e.message); return; }
+  const sheet=(rows, widths)=>{ const ws=X.utils.json_to_sheet(rows); ws['!cols']=widths.map(w=>({wch:w})); return ws; };
+  const wb=X.utils.book_new();
+  X.utils.book_append_sheet(wb, sheet(BASES.map(b=>{ const st=baseStats(b.code); return {Base:b.code, Name:b.name, Initiatives:st.total, Updated:st.updated, Missing:st.total-st.updated,
+    'On track':st.counts.green, 'At risk':st.counts.amber, 'Off track':st.counts.red, Complete:st.counts.blue, 'For the board':st.needs, 'Open barriers':st.openB, 'Feedback given':st.fb?'Yes':'No'}; }),
+    [6,22,11,9,9,9,8,9,9,13,13,14]), 'Summary');
+  const ups=[]; BASES.forEach(b=>initsFor(b.code).forEach(i=>{ const u=upd(i.id)||{}; const m=moved(i.id);
+    ups.push({Base:b.code, Group:i.group||'', 'Focus area':i.focusArea||'', Detail:plain(i.detail), KPI:plain(i.kpi), 'S25 baseline':plain(i.baseline),
+      Status:u.rag?RAG[u.rag]:(u.text?'No status':'Not updated'), 'Since last month':m>0?'Worse':m<0?'Better':'', 'KPI actual':u.kpiActual||'',
+      Update:plain(u.text), 'For the board':u.needsBoard?'Yes':'', 'Board ask':plain(u.barrier), 'Last saved':u.updatedAt?fmtWhen(u.updatedAt):''}); }));
+  X.utils.book_append_sheet(wb, sheet(ups, [6,24,22,40,24,16,12,14,12,80,12,40,11]), 'Updates');
+  X.utils.book_append_sheet(wb, sheet(S.barriers.slice().sort(byAge).map(x=>{ const i=S.inits.find(y=>y.id===x.initiative);
+    return {Base:x.base, Initiative:i?(i.focusArea||i.detail.split('\n')[0]):'', Barrier:plain(x.description), Raised:mlabel(x.month), 'Days open':x.status==='resolved'?'':daysOpen(x),
+      Status:BSTATUS[x.status]||x.status, Owner:x.owner||'', 'Board action':x.action||''}; }), [6,24,60,9,10,15,18,40]), 'Barriers');
+  const fbRows=BASES.map(b=>{ const f=S.feedback[b.code+'_'+S.month]||{}; return {Base:b.code, "What's working":plain(f.working), 'Focus areas':plain(f.focus), 'Board actions':plain(f.actions)}; });
+  const net=S.feedback['NET_'+S.month]; if(net&&net.notes) fbRows.push({Base:'Network', "What's working":plain(net.notes), 'Focus areas':'', 'Board actions':''});
+  X.utils.book_append_sheet(wb, sheet(fbRows, [9,50,50,50]), 'Board feedback');
+  X.writeFile(wb, `big-board-${S.month}.xlsx`);
+}
+// A print-ready pack of the month, one base per page. "Save as PDF" in the print dialog gives the PDF.
+function printPack(){
+  let el=document.getElementById('printPack'); if(!el){ el=document.createElement('div'); el.id='printPack'; document.body.appendChild(el); }
+  const today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const sum=`<table class="pp-sum"><thead><tr><th>Base</th><th>Updated</th><th>On track</th><th>At risk</th><th>Off track</th><th>Complete</th><th>For board</th><th>Open barriers</th></tr></thead><tbody>
+    ${BASES.map(b=>{ const st=baseStats(b.code); return `<tr><td><b>${b.code}</b> ${esc(b.name)}</td><td>${st.updated}/${st.total}</td><td>${st.counts.green}</td><td>${st.counts.amber}</td><td>${st.counts.red}</td><td>${st.counts.blue}</td><td>${st.needs}</td><td>${st.openB}</td></tr>`; }).join('')}</tbody></table>`;
+  const net=S.feedback['NET_'+S.month];
+  const bases=BASES.map(b=>{ const st=baseStats(b.code); const f=S.feedback[b.code+'_'+S.month]||{};
+    return `<section class="pp-base"><h2>${b.code} · ${esc(b.name)}</h2><p class="pp-meta">${st.updated} of ${st.total} updated · ${st.counts.green} on track · ${st.counts.amber} at risk · ${st.counts.red} off track · ${st.counts.blue} complete${st.needs?` · ${st.needs} for the board`:''}</p>
+      ${initsFor(b.code).map(i=>{ const u=upd(i.id)||{}; return `<div class="pp-it"><div class="pp-h"><b>${esc(i.focusArea||i.detail.split('\n')[0])}</b><span class="chip ${u.rag||'none'}">${u.rag?RAG[u.rag]:(u.text?'No status':'Not updated')}</span>${u.needsBoard?'<span class="chip board">For the board</span>':''}</div>
+        ${i.kpi?`<div class="pp-kpi">KPI: ${esc(i.kpi.replace(/\n/g,', '))}${u.kpiActual?` · actual <b>${esc(u.kpiActual)}</b>`:''}${i.baseline?` · S25 ${esc(i.baseline.replace(/\n/g,', '))}`:''}</div>`:''}
+        ${u.text?fmt(u.text):''}${u.needsBoard&&u.barrier?`<div class="barrier"><b>Where we need the board</b>${esc(u.barrier)}</div>`:''}</div>`; }).join('')}
+      ${(f.working||f.focus||f.actions)?`<div class="pp-fb"><h3>Board feedback</h3>${f.working?`<p><b>What's working:</b> ${esc(f.working)}</p>`:''}${f.focus?`<p><b>Focus areas:</b> ${esc(f.focus)}</p>`:''}${f.actions?`<p><b>Board actions:</b> ${esc(f.actions)}</p>`:''}</div>`:''}
+    </section>`; }).join('');
+  el.innerHTML=`<header class="pp-cover"><h1>BIG BOARD · ${mlabel(S.month)}</h1><p>Focus initiatives board pack · generated ${today}</p>${sum}${net&&net.notes?`<h3>Board notes</h3><p style="white-space:pre-wrap">${esc(net.notes)}</p>`:''}</header>${bases}`;
+  window.print();
+}
+
 /* ---------- events ---------- */
-$('#months').addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(!b) return; S.month=b.dataset.m; S.expanded={}; subscribeMonth(); render(); });
-$('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b) return; if(S.view!==b.dataset.v){ S.filter='all'; S.q=''; } S.view=b.dataset.v; render(); window.scrollTo({top:0}); });
+$('#months').addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(!b) return; flushFeedback(); S.month=b.dataset.m; S.expanded={}; subscribeMonth(); render(); });
+$('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b) return; flushFeedback(); if(S.view!==b.dataset.v){ S.filter='all'; S.q=''; } S.view=b.dataset.v; render(); window.scrollTo({top:0}); });
 $('#view').addEventListener('click',async e=>{
   const t=e.target;
   const tg=t.closest('[data-toggle]'); if(tg){ S.open[tg.dataset.toggle]=!S.open[tg.dataset.toggle]; render(); return; }
   const cl=t.closest('[data-collapse]'); if(cl){ const k=cl.dataset.collapse; S.collapsed[k]=!S.collapsed[k]; render(); return; }
   const fl=t.closest('[data-filter]'); if(fl){ S.filter=fl.dataset.filter; if(fl.dataset.clearq) S.q=''; render(); return; }
   if(t.id==='toggleAll'){ const {list}=baseList(S.view); const allOpen=list.every(i=>S.open[i.id]); list.forEach(i=>{ S.open[i.id]=!allOpen; }); render(); return; }
-  const go=t.closest('[data-go]'); if(go && !t.closest('textarea')){ S.view=go.dataset.go; S.filter=go.dataset.f||'all'; S.q=''; render(); window.scrollTo({top:0}); return; }
+  const go=t.closest('[data-go]'); if(go && !t.closest('textarea')){ flushFeedback(); S.view=go.dataset.go; S.filter=go.dataset.f||'all'; S.q=''; render(); window.scrollTo({top:0}); return; }
   if(t.id==='copyBase'){ copyText(baseText(t.dataset.base)); return; }
   if(t.id==='addBase'){ addBase(); return; }
   if(t.dataset.archbase){ archiveBase(t.dataset.archbase); return; }
@@ -813,12 +1044,13 @@ $('#view').addEventListener('click',async e=>{
   if(t.id==='copyNet'){ copyText(networkText()); return; }
   if(t.dataset.more){ S.expanded[t.dataset.more]=true; render(); return; }
   if(t.dataset.edit){ editUpdate(t.dataset.edit); return; }
+  if(t.dataset.history){ showHistory(t.dataset.history); return; }
+  if(t.id==='xlsx'){ exportXlsx(); return; }
+  if(t.id==='pdfPack'){ printPack(); return; }
   if(t.dataset.newbarrier!==undefined){ newBarrier(t.dataset.newbarrier||(BASES.some(b=>b.code===S.view)?S.view:(BASES[0]||{}).code)); return; }
   if(t.dataset.newinit!==undefined){ editInit(null); return; }
   if(t.dataset.editinit){ editInit(t.dataset.editinit); return; }
   if(t.dataset.arch){ const i=S.inits.find(x=>x.id===t.dataset.arch); if(i){ const d=Object.assign({},i,{archived:!i.archived}); await save(S.db.doc('initiatives/'+i.id), d, d.archived?'Archived':'Restored'); } return; }
-  if(t.id==='saveFb'){ saveFeedback(t.dataset.base+'_'+S.month,{base:t.dataset.base, working:$('#fbWorking').value.trim(), focus:$('#fbFocus').value.trim(), actions:$('#fbActions').value.trim()}); return; }
-  if(t.id==='saveNet'){ saveFeedback('NET_'+S.month,{base:'NET', notes:$('#netNotes').value.trim()}); return; }
 });
 $('#view').addEventListener('keydown',e=>{
   if(e.key!=='Enter' && e.key!==' ') return;
@@ -826,7 +1058,12 @@ $('#view').addEventListener('keydown',e=>{
   if(t.dataset.toggle){ e.preventDefault(); S.open[t.dataset.toggle]=!S.open[t.dataset.toggle]; render(); return; }
   if(t.matches('tr[data-go]')){ e.preventDefault(); S.view=t.dataset.go; S.filter='all'; S.q=''; render(); }
 });
-$('#view').addEventListener('input',e=>{ if(e.target.id==='bq'){ S.q=e.target.value; render(); } });
+$('#view').addEventListener('input',e=>{
+  const id=e.target.id;
+  if(id==='bq'){ S.q=e.target.value; render(); return; }
+  if(id==='fbWorking'||id==='fbFocus'||id==='fbActions') queueFeedback(S.view+'_'+S.month, feedbackFields(), 'fbState');
+  if(id==='netNotes') queueFeedback('NET_'+S.month, {base:'NET', notes:e.target.value.trim()}, 'netState');
+});
 $('#view').addEventListener('change',e=>{
   const t=e.target;
   if(t.id==='bfBase'||t.id==='bfStatus'){ S.bfilter={base:$('#bfBase').value, status:$('#bfStatus').value}; render(); return; }

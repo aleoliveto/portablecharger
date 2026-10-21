@@ -4,17 +4,19 @@
 // "updates/<YYYY-MM>/<id>" so a month is one prefix listing however large the
 // history grows. Each write also bumps a revision token ("_rev/<scope>") so the
 // page polls one cheap endpoint and only re-reads what actually changed.
-import { getStore } from '@netlify/blobs';
 import crypto from 'node:crypto';
+import { COLLECTIONS as COLLECTION_LIST, store, backupStore, mapLimit, readPrefix, readWithEtag, collectionPrefix, exportAll } from '../lib/data.mjs';
 
-const COLLECTIONS = new Set(['bases', 'initiatives', 'updates', 'feedback', 'barriers']);
+const COLLECTIONS = new Set(COLLECTION_LIST);
 const ID_RE = /^[A-Za-z0-9_\-]{1,120}$/;
 const MONTH_RE = /^\d{4}-\d{2}$/;
 const MAX_DOC_BYTES = 200_000;
 const SESSION_DAYS = 30;
+// Saves by the same person within this window replace each other in history instead of
+// stacking up, so autosaved notes don't leave one version per pause in typing.
+const HISTORY_MERGE_MS = 10 * 60_000;
 const COOKIE = 'bb_session';
 
-const store = () => getStore({ name: 'bigboard', consistency: 'strong' });
 
 /* ---------- helpers ---------- */
 const json = (body, status = 200, headers = {}) =>
@@ -70,25 +72,23 @@ function blobKey(collection, id) {
 const scopeOf = (collection, id) => (collection === 'updates' ? 'updates:' + id.slice(-7) : collection);
 const bump = (st, scope) => st.setJSON('_rev/' + scope, { t: Date.now().toString(36) + crypto.randomBytes(4).toString('hex') });
 
-async function mapLimit(items, limit, fn) {
-  const out = new Array(items.length);
-  let i = 0;
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (i < items.length) { const n = i++; out[n] = await fn(items[n], n); }
-  }));
-  return out;
+// 409 with the version that won, and the saver's name so the page can say who.
+async function conflict(st, current) {
+  const by = current && typeof current.updatedBy === 'string' && ID_RE.test(current.updatedBy) ? await st.get('_users/' + current.updatedBy, { type: 'json' }) : null;
+  return json({ error: 'Someone else saved this while you were editing', code: 'conflict', current, currentByName: by && by.name }, 409);
 }
 
-async function readPrefix(st, prefix) {
-  const { blobs } = await st.list({ prefix });
-  const docs = await mapLimit(blobs, 32, async (b) => {
-    const data = await st.get(b.key, { type: 'json' });
-    return data == null ? null : { id: b.key.slice(b.key.lastIndexOf('/') + 1), data };
-  });
-  return docs.filter(Boolean);
+const histPrefix = (collection, id) => `_hist/${collection}/${id}/`;
+
+// Keep the version being replaced, unless the same person saved it moments ago.
+async function keepHistory(st, collection, id, prev, next, session, action) {
+  if (!prev) return;
+  const sameEditor = action === 'edit' && prev.updatedBy && prev.updatedBy === (next && next.updatedBy);
+  const recent = prev.updatedAt && Date.now() - Date.parse(prev.updatedAt) < HISTORY_MERGE_MS;
+  if (sameEditor && recent) return;
+  const at = new Date().toISOString();
+  await st.setJSON(histPrefix(collection, id) + at.replace(/[:.]/g, '-'), { data: prev, replacedAt: at, replacedBy: session.n, action });
 }
-const collectionPrefix = (collection, month) =>
-  collection === 'updates' ? (month ? `updates/${month}/` : 'updates/') : `${collection}/`;
 
 /* ---------- login throttling ---------- */
 async function throttle(st, req, ok) {
@@ -193,11 +193,21 @@ async function handle(req) {
       let data;
       try { data = JSON.parse(text); } catch { return fail(400, 'Body must be JSON'); }
       if (!data || typeof data !== 'object' || Array.isArray(data)) return fail(400, 'Body must be a JSON object');
-      await st.setJSON(key, data);
+      // x-if-match carries the version the editor started from ("new" if it didn't exist yet);
+      // a mismatch means someone saved in between, so hand back their version instead.
+      const expect = req.headers.get('x-if-match');
+      const cur = await readWithEtag(st, key);
+      const curData = cur && cur.data != null ? cur.data : null;
+      if (expect && (expect === 'new' ? curData !== null : !cur || cur.etag !== expect)) return conflict(st, curData);
+      await keepHistory(st, collection, id, curData, data, session, 'edit');
+      const res = curData === null ? await st.setJSON(key, data, { onlyIfNew: true }) : await st.setJSON(key, data, { onlyIfMatch: cur.etag });
+      if (res && res.modified === false) return conflict(st, await st.get(key, { type: 'json' }));
       await bump(st, scopeOf(collection, id));
-      return json({ ok: true });
+      return json({ ok: true, etag: res && res.etag });
     }
     if (method === 'DELETE') {
+      const prev = await st.get(key, { type: 'json' });
+      await keepHistory(st, collection, id, prev, null, session, 'delete');
       await st.delete(key);
       await bump(st, scopeOf(collection, id));
       return json({ ok: true });
@@ -205,12 +215,40 @@ async function handle(req) {
     return fail(405, 'Method not allowed');
   }
 
-  if (route === 'export' && method === 'GET') {
+  if (route === 'history' && method === 'GET') {
+    const [, collection, id] = parts;
+    if (!COLLECTIONS.has(collection) || !id || !ID_RE.test(id)) return fail(400, 'Bad document path');
+    const { blobs } = await st.list({ prefix: histPrefix(collection, id) });
+    const recent = blobs.map((b) => b.key).sort().reverse().slice(0, 50);
+    const versions = (await mapLimit(recent, 16, (k) => st.get(k, { type: 'json' }))).filter(Boolean);
+    return json({ versions });
+  }
+
+  // One initiative's update for each requested month, for the KPI trend.
+  if (route === 'series' && method === 'GET') {
+    const id = parts[1];
+    if (!id || !ID_RE.test(id)) return fail(400, 'Bad initiative');
+    const months = (url.searchParams.get('months') || '').split(',').filter((m) => MONTH_RE.test(m)).slice(0, 36);
     const out = {};
-    for (const c of COLLECTIONS) {
-      out[c] = {};
-      for (const d of await readPrefix(st, collectionPrefix(c))) out[c][d.id] = d.data;
+    await mapLimit(months, 12, async (m) => { out[m] = await st.get(`updates/${m}/${id}_${m}`, { type: 'json' }); });
+    return json({ months: out });
+  }
+
+  if (route === 'backups' && method === 'GET') {
+    const bk = backupStore();
+    const name = parts[1];
+    if (!name) {
+      const { blobs } = await bk.list();
+      return json({ backups: blobs.map((b) => b.key).sort().reverse() });
     }
+    if (!/^\d{4}-\d{2}-\d{2}\.json$/.test(name)) return fail(400, 'Bad backup name');
+    const data = await bk.get(name, { type: 'json' });
+    if (data == null) return fail(404, 'No such backup');
+    return json(data, 200, { 'content-disposition': `attachment; filename="big-board-backup-${name}"` });
+  }
+
+  if (route === 'export' && method === 'GET') {
+    const out = await exportAll(st);
     const day = new Date().toISOString().slice(0, 10);
     return json(out, 200, { 'content-disposition': `attachment; filename="big-board-data-export-${day}.json"` });
   }

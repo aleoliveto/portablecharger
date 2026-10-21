@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BIG BOARD Import</title>
+<title>BIG BOARD Data</title>
 <style>
 :root{--bg:#f6f6f6;--card:#fff;--ink:#1a1a1a;--muted:#696D6F;--accent:#FF6600}
 @media (prefers-color-scheme:dark){:root{--bg:#121314;--card:#1d1f20;--ink:#eee;--muted:#a3a6a8}}
@@ -24,10 +24,17 @@ a{color:var(--accent)}
   <p><input type="file" id="f" accept="application/json,.json"></p>
   <p><button id="go" disabled>Import</button> <a href="/">Back to the board</a></p>
   <pre id="out"></pre>
+  <h1 style="margin-top:28px">Daily backups</h1>
+  <p>A full copy of the board is saved every night and kept for 90 days. Download one, then use Import above to put it back.</p>
+  <ul id="bk"><li>Loading…</li></ul>
 </main>
 <script>
 const f=document.getElementById('f'), go=document.getElementById('go'), out=document.getElementById('out');
 let data=null;
+fetch('/api/backups').then(r=>r.ok?r.json():Promise.reject(r.status)).then(({backups})=>{
+  const ul=document.getElementById('bk');
+  ul.innerHTML = backups.length ? backups.map(b=>`<li><a href="/api/backups/${encodeURIComponent(b)}">${b.replace('.json','')}</a></li>`).join('') : '<li>None yet. The first runs tonight.</li>';
+}).catch(s=>{ document.getElementById('bk').innerHTML=`<li>Couldn't load backups${s===401?' (sign in on the board first)':''}.</li>`; });
 f.addEventListener('change', async () => {
   data=null; go.disabled=true; out.textContent='';
   try {
