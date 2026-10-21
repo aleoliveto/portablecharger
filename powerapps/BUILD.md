@@ -758,7 +758,7 @@ Items:
     Filter(
         AddColumns(colUpd,
             PrevStatus, LookUp(colPrev As p, p.InitiativeKey = InitiativeKey).Status.Value,
-            InitTitle,  LookUp(colInits As i, i.Key = InitiativeKey).Title),
+            InitTitle,  LookUp(colInits, Key = InitiativeKey).Title),
         !IsBlank(PrevStatus) && StatusRank(Status.Value) > StatusRank(PrevStatus)
     )
 TemplateSize: 30
@@ -1148,8 +1148,8 @@ Items:
         Sort(
             Filter(
                 AddColumns(Filter(colInits, Base = varView),
-                    U, LookUp(colUpd  As x, x.InitiativeKey = Key),
-                    P, LookUp(colPrev As y, y.InitiativeKey = Key)),
+                    U, LookUp(colUpd,  InitiativeKey = Key),
+                    P, LookUp(colPrev, InitiativeKey = Key)),
                 Switch(varFilter,
                     "Not updated",   IsBlank(U),
                     "Off track",     U.Status.Value = "Off track",
