@@ -67,14 +67,14 @@ In the tables below, the third column lists the options to switch on for that co
 - **Indexed**: section 1d.
 - **Default Yes/No**: the *Default value* box when you add the column.
 
-Anything else in that column is just an example of what goes in it. Blank means nothing to switch on.
+Anything else in that column is an example of what goes in it. **You don't enter any of these during setup.** "Filled in by the app" means the app writes it when someone saves. The only value you type yourself is an initiative's **Key**, when you add initiatives to the list. Blank means nothing to switch on.
 
 ### Initiatives
 
 | Column | Type | Switch on (see 1c–1d) / example value |
 |---|---|---|
 | Title | (already there) | Focus area, e.g. FIRST WAVE |
-| Key | Single line of text | Required + enforce unique values. e.g. `lgw-03` |
+| Key | Single line of text | Required + enforce unique values. **You type this** when adding an initiative: base code in lower case, dash, two digits, e.g. `lgw-03`. Never reuse one |
 | Base | Single line of text | Indexed. LGW, PMI, … |
 | Group | Single line of text | e.g. Focus based on Deep Dive |
 | Detail | Multiple lines, plain text | |
@@ -89,10 +89,10 @@ Add one row per base with Title **Base-wide**, for asks that don't belong to a s
 
 | Column | Type | Switch on (see 1c–1d) / example value |
 |---|---|---|
-| Title | (already there) | Enforce unique values. `<Key>_<YYYY-MM>`, e.g. `lgw-03_2026-10` |
+| Title | (already there) | Enforce unique values. **Filled in by the app**, e.g. `lgw-03_2026-10` |
 | InitiativeKey | Single line of text | Indexed |
 | Base | Single line of text | Indexed |
-| Month | Single line of text | Indexed. `2026-10` |
+| Month | Single line of text | Indexed. **Filled in by the app**, e.g. `2026-10` |
 | Status | Choice | On track / At risk / Off track / Complete |
 | UpdateText | Multiple lines, plain text | |
 | KPIActual | Single line of text | |
@@ -107,9 +107,9 @@ Add one row per base with Title **Base-wide**, for asks that don't belong to a s
 
 | Column | Type | Switch on (see 1c–1d) / example value |
 |---|---|---|
-| Title | (already there) | Enforce unique values. `LGW_2026-10` or `NET_2026-10` |
+| Title | (already there) | Enforce unique values. **Filled in by the app**, e.g. `LGW_2026-10`, or `NET_2026-10` for network notes |
 | Base | Single line of text | |
-| Month | Single line of text | Indexed |
+| Month | Single line of text | Indexed. **Filled in by the app** |
 | Working | Multiple lines, plain text | |
 | Focus | Multiple lines, plain text | |
 | Actions | Multiple lines, plain text | |
