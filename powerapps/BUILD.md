@@ -265,7 +265,10 @@ Concurrent(
 );
 // Tabs: Network, Barriers, then one per base. The tab bar scrolls sideways.
 ClearCollect(colTabs, ["NETWORK", "BARRIERS"]);
-Collect(colTabs, ForAll(colBases, {Value: Code}))
+Collect(colTabs, ForAll(colBases, {Value: Code}));
+// Choices for the base filter on the Barriers screen: All, then every base.
+ClearCollect(colBaseFilter, ["All"]);
+Collect(colBaseFilter, ForAll(colBases, {Value: Code}))
 ```
 
 **The reload block.** The last part of OnStart, from `Set(varPrev, …` to the closing `)`, is referred to below as **<RELOAD BLOCK>**. Paste it wherever that appears: the month drop-downs and the Save button. It loads the selected month, the month before for comparisons, board feedback, and every flagged item for the barriers list. Each filter runs on SharePoint's side, so it keeps working as the lists grow.
@@ -1703,7 +1706,7 @@ Color: cMuted
 **`ddBarBase`**
 
 ```
-Items: Ungroup(Table({t: ["All"]}, {t: RenameColumns(ShowColumns(colBases, Code), Code, Value)}), t)
+Items: colBaseFilter
 Default: "All"
 ```
 
