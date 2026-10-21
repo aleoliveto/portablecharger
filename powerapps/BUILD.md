@@ -187,8 +187,7 @@ cFaint  = ColorValue("#A4A4A2");
 cBg     = ColorValue("#F7F7F6");
 cLine   = ColorValue("#E3E3E1");
 
-// Every base, in the order they appear in the picker and tables. A base shows in the app once it
-// is listed here AND has at least one active initiative.
+// Every base, in the order they appear in the tabs and tables. Add or remove a line to add or retire a base.
 tBaseInfo = Table(
     {Code: "BFS", Name: "Belfast",            Region: "UK",          R: 1},
     {Code: "BHX", Name: "Birmingham",         Region: "UK",          R: 1},
@@ -254,8 +253,8 @@ Set(varView, "NETWORK");
 Set(varFilter, "All");
 ClearCollect(colInits, Filter(Initiatives, Active = true));
 Set(varRegion, "All");
-// Bases from tBaseInfo that have at least one active initiative, in tBaseInfo's order.
-ClearCollect(colBases, Filter(tBaseInfo, Code in colInits.Base));
+// Every base in tBaseInfo, in its order.
+ClearCollect(colBases, tBaseInfo);
 Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
 Concurrent(
     ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -2008,6 +2007,6 @@ OnSelect:
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
 - **Editing initiatives:** add, rename or retire them straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
-- **A new base:** add its initiatives to the Initiatives list, with the code in Base. It appears as a tab, in the Network table and in the Barriers filter the next time the app opens. It must also have a line in `tBaseInfo` in App.Formulas. Put it where you want it to sort.
-- **Retiring a base:** set Active to No on its initiatives and it drops out of the picker and tables. Its history stays in the lists.
+- **A new base:** add a line to `tBaseInfo` in App.Formulas, where you want it to sort. Then add its initiatives to the Initiatives list, with the code in Base.
+- **Retiring a base:** remove its line from `tBaseInfo` and set Active to No on its initiatives. Its history stays in the lists.
 - **FY28:** change `Date(2026, 9, 1)` in `tMonths`.
