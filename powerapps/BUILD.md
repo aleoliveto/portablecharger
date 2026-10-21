@@ -128,7 +128,7 @@ Add one row per base with Title **Base-wide**, for asks that don't belong to a s
 ### 2b. App settings
 
 1. Top bar: **Settings** (gear).
-2. **Display:** turn **Scale to fit**, **Lock aspect ratio** and **Lock orientation** *on*.
+2. **Display:** App layout **Fixed** · Orientation **Landscape** · Size **16:9 Default** (that's 1366 × 768) · **Lock aspect ratio** On · **Lock orientation** On.
 3. **Updates → New** (or **Preview**): turn on **User-defined functions**, if it's listed. Close.
 
 ### 2c. Connect the lists
