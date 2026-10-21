@@ -263,6 +263,9 @@ Concurrent(
     ClearCollect(colFb,   Filter('Board Feedback', Month = varMonth)),
     ClearCollect(colBar,  Filter(Updates, ForBoard = true))
 );
+// Tabs: Network, Barriers, then one per base. The tab bar scrolls sideways.
+ClearCollect(colTabs, ["NETWORK", "BARRIERS"]);
+Collect(colTabs, ForAll(colBases, {Value: Code}))
 ```
 
 **The reload block.** The last part of OnStart, from `Set(varPrev, …` to the closing `)`, is referred to below as **<RELOAD BLOCK>**. Paste it wherever that appears: the month drop-downs and the Save button. It loads the selected month, the month before for comparisons, board feedback, and every flagged item for the barriers list. Each filter runs on SharePoint's side, so it keeps working as the lists grow.
@@ -288,10 +291,9 @@ Set(varView, "NETWORK")
 | `lblUser` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine` | Rectangle | 0 | 99 | 1366 | 1 | |
-| `galNav` | Gallery (horizontal, blank) | 10 | 56 | 220 | 44 | |
-| `btnTab` | Button | 0 | 0 | 110 | 44 | `galNav` |
-| `recTabOn` | Rectangle | 14 | 40 | 82 | 4 | `galNav` |
-| `cmbBase` | Combo box | 250 | 60 | 280 | 36 | |
+| `galNav` | Gallery (horizontal, blank) | 10 | 56 | 1346 | 44 | |
+| `btnTab` | Button | 0 | 0 | 90 | 44 | `galNav` |
+| `recTabOn` | Rectangle | 14 | 40 | 62 | 4 | `galNav` |
 | `lblNetTitle` | Label | 20 | 110 | 700 | 34 | |
 | `lblNetSub` | Label | 20 | 142 | 900 | 24 | |
 | `galKpi` | Gallery (horizontal, blank) | 20 | 174 | 1326 | 84 | |
@@ -405,10 +407,12 @@ Fill: cLine
 **`galNav`**
 
 ```
-Items: ["NETWORK", "BARRIERS"]
-TemplateSize: 110
+Items: colTabs
+TemplateSize: 90
 TemplatePadding: 0
-ShowScrollbar: false
+ShowScrollbar: true
+ShowNavigation: true
+NavigationStep: 5
 ```
 
 **`btnTab`** (in `galNav`)
@@ -426,7 +430,8 @@ Size: 11
 FontWeight: FontWeight.Semibold
 OnSelect:
     Set(varView, ThisItem.Value);
-    Navigate(If(ThisItem.Value = "NETWORK", scrNetwork, scrBarriers), ScreenTransition.None)
+    Set(varFilter, "All");
+    Navigate(Switch(ThisItem.Value, "NETWORK", scrNetwork, "BARRIERS", scrBarriers, scrBase), ScreenTransition.None)
 ```
 
 **`recTabOn`** (in `galNav`)
@@ -434,24 +439,6 @@ OnSelect:
 ```
 Fill: cOrange
 Visible: varView = ThisItem.Value
-```
-
-**`cmbBase`**
-
-```
-Items: colBases
-DisplayFields: ["Code", "Name"]
-SearchFields: ["Code", "Name"]
-IsSearchable: true
-SelectMultiple: false
-InputTextPlaceholder: "Go to a base…"
-DefaultSelectedItems: Filter(colBases, Code = varView)
-OnChange:
-    If(!IsBlank(Self.Selected),
-        Set(varView, Self.Selected.Code);
-        Set(varFilter, "All");
-        Navigate(scrBase, ScreenTransition.None))
-BorderColor: If(LookUp(colBases, Code = varView, true), cOrange, cLine)
 ```
 
 **`lblNetTitle`**
@@ -904,7 +891,7 @@ OnSelect:
 
 ![scrBase](scrBase.png)
 
-The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those nine controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
+The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those eight controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
 
 | Control | Type | X | Y | W | H | Inside |
 |---|---|---|---|---|---|---|
@@ -915,10 +902,9 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `lblUser_1` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav_1` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine_1` | Rectangle | 0 | 99 | 1366 | 1 | |
-| `galNav_1` | Gallery (horizontal, blank) | 10 | 56 | 220 | 44 | |
-| `btnTab_1` | Button | 0 | 0 | 110 | 44 | `galNav_1` |
-| `recTabOn_1` | Rectangle | 14 | 40 | 82 | 4 | `galNav_1` |
-| `cmbBase_1` | Combo box | 250 | 60 | 280 | 36 | |
+| `galNav_1` | Gallery (horizontal, blank) | 10 | 56 | 1346 | 44 | |
+| `btnTab_1` | Button | 0 | 0 | 90 | 44 | `galNav_1` |
+| `recTabOn_1` | Rectangle | 14 | 40 | 62 | 4 | `galNav_1` |
 | `lblBaseTitle` | Label | 20 | 110 | 700 | 34 | |
 | `lblBaseSub` | Label | 20 | 142 | 900 | 24 | |
 | `galFilters` | Gallery (horizontal, blank) | 20 | 174 | 660 | 36 | |
@@ -1010,10 +996,12 @@ Fill: cLine
 **`galNav_1`**
 
 ```
-Items: ["NETWORK", "BARRIERS"]
-TemplateSize: 110
+Items: colTabs
+TemplateSize: 90
 TemplatePadding: 0
-ShowScrollbar: false
+ShowScrollbar: true
+ShowNavigation: true
+NavigationStep: 5
 ```
 
 **`btnTab_1`** (in `galNav_1`)
@@ -1031,7 +1019,8 @@ Size: 11
 FontWeight: FontWeight.Semibold
 OnSelect:
     Set(varView, ThisItem.Value);
-    Navigate(If(ThisItem.Value = "NETWORK", scrNetwork, scrBarriers), ScreenTransition.None)
+    Set(varFilter, "All");
+    Navigate(Switch(ThisItem.Value, "NETWORK", scrNetwork, "BARRIERS", scrBarriers, scrBase), ScreenTransition.None)
 ```
 
 **`recTabOn_1`** (in `galNav_1`)
@@ -1039,24 +1028,6 @@ OnSelect:
 ```
 Fill: cOrange
 Visible: varView = ThisItem.Value
-```
-
-**`cmbBase_1`**
-
-```
-Items: colBases
-DisplayFields: ["Code", "Name"]
-SearchFields: ["Code", "Name"]
-IsSearchable: true
-SelectMultiple: false
-InputTextPlaceholder: "Go to a base…"
-DefaultSelectedItems: Filter(colBases, Code = varView)
-OnChange:
-    If(!IsBlank(Self.Selected),
-        Set(varView, Self.Selected.Code);
-        Set(varFilter, "All");
-        Navigate(scrBase, ScreenTransition.None))
-BorderColor: If(LookUp(colBases, Code = varView, true), cOrange, cLine)
 ```
 
 **`lblBaseTitle`**
@@ -1577,7 +1548,7 @@ OnSelect:
 Set(varView, "BARRIERS")
 ```
 
-The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those nine controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
+The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those eight controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
 
 | Control | Type | X | Y | W | H | Inside |
 |---|---|---|---|---|---|---|
@@ -1588,10 +1559,9 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `lblUser_2` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav_2` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine_2` | Rectangle | 0 | 99 | 1366 | 1 | |
-| `galNav_2` | Gallery (horizontal, blank) | 10 | 56 | 220 | 44 | |
-| `btnTab_2` | Button | 0 | 0 | 110 | 44 | `galNav_2` |
-| `recTabOn_2` | Rectangle | 14 | 40 | 82 | 4 | `galNav_2` |
-| `cmbBase_2` | Combo box | 250 | 60 | 280 | 36 | |
+| `galNav_2` | Gallery (horizontal, blank) | 10 | 56 | 1346 | 44 | |
+| `btnTab_2` | Button | 0 | 0 | 90 | 44 | `galNav_2` |
+| `recTabOn_2` | Rectangle | 14 | 40 | 62 | 4 | `galNav_2` |
 | `lblBarTitle` | Label | 20 | 110 | 800 | 34 | |
 | `lblBarSub` | Label | 20 | 142 | 900 | 24 | |
 | `ddBarBase` | Drop down | 20 | 174 | 160 | 36 | |
@@ -1680,10 +1650,12 @@ Fill: cLine
 **`galNav_2`**
 
 ```
-Items: ["NETWORK", "BARRIERS"]
-TemplateSize: 110
+Items: colTabs
+TemplateSize: 90
 TemplatePadding: 0
-ShowScrollbar: false
+ShowScrollbar: true
+ShowNavigation: true
+NavigationStep: 5
 ```
 
 **`btnTab_2`** (in `galNav_2`)
@@ -1701,7 +1673,8 @@ Size: 11
 FontWeight: FontWeight.Semibold
 OnSelect:
     Set(varView, ThisItem.Value);
-    Navigate(If(ThisItem.Value = "NETWORK", scrNetwork, scrBarriers), ScreenTransition.None)
+    Set(varFilter, "All");
+    Navigate(Switch(ThisItem.Value, "NETWORK", scrNetwork, "BARRIERS", scrBarriers, scrBase), ScreenTransition.None)
 ```
 
 **`recTabOn_2`** (in `galNav_2`)
@@ -1709,24 +1682,6 @@ OnSelect:
 ```
 Fill: cOrange
 Visible: varView = ThisItem.Value
-```
-
-**`cmbBase_2`**
-
-```
-Items: colBases
-DisplayFields: ["Code", "Name"]
-SearchFields: ["Code", "Name"]
-IsSearchable: true
-SelectMultiple: false
-InputTextPlaceholder: "Go to a base…"
-DefaultSelectedItems: Filter(colBases, Code = varView)
-OnChange:
-    If(!IsBlank(Self.Selected),
-        Set(varView, Self.Selected.Code);
-        Set(varFilter, "All");
-        Navigate(scrBase, ScreenTransition.None))
-BorderColor: If(LookUp(colBases, Code = varView, true), cOrange, cLine)
 ```
 
 **`lblBarTitle`**
@@ -2050,6 +2005,6 @@ OnSelect:
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
 - **Editing initiatives:** add, rename or retire them straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
-- **A new base:** add its initiatives to the Initiatives list, with the code in Base. It appears in the base picker, the Network table and the Barriers filter the next time the app opens. It must also have a line in `tBaseInfo` in App.Formulas. Put it where you want it to sort.
+- **A new base:** add its initiatives to the Initiatives list, with the code in Base. It appears as a tab, in the Network table and in the Barriers filter the next time the app opens. It must also have a line in `tBaseInfo` in App.Formulas. Put it where you want it to sort.
 - **Retiring a base:** set Active to No on its initiatives and it drops out of the picker and tables. Its history stays in the lists.
 - **FY28:** change `Date(2026, 9, 1)` in `tMonths`.
