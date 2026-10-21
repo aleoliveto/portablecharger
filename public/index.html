@@ -141,15 +141,7 @@ main{max-width:1400px;margin:0 auto;padding-block:20px 60px}
 .btn[disabled]{opacity:.5;cursor:default}
 
 /* network grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
-.bcard{cursor:pointer;display:flex;flex-direction:column;gap:10px;transition:transform .12s}
-.bcard:hover{transform:translateY(-1px);border-color:var(--line-strong)}
-.bcard .top{display:flex;justify-content:space-between;align-items:baseline}
-.bcard .code{font-family:var(--display);font-size:24px;font-weight:600;letter-spacing:1px;color:var(--fg)}
-.bcard .name{color:var(--muted);font-size:12.5px}
-.ragbar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--surface-2)}
-.ragbar span{display:block;height:100%}
 .chips{display:flex;flex-wrap:wrap;gap:5px}
 .chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
 .chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
@@ -161,10 +153,6 @@ main{max-width:1400px;margin:0 auto;padding-block:20px 60px}
 .chip.none{background:var(--none-bg);color:var(--none-fg)}
 .chip.board{background:var(--orange);color:#fff}
 .chip.board::before{display:none}
-.bcard .prog{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
-.bcard .prog b{color:var(--fg);font-variant-numeric:tabular-nums}
-.bcard .flags{display:flex;flex-wrap:wrap;gap:5px;min-height:22px;align-items:center}
-.bcard .quiet{font-size:12.5px;color:var(--faint)}
 .chip.warn{background:var(--red-soft);color:var(--red)}
 .chip.ok{background:var(--green-soft);color:var(--green)}
 .net2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:16px;align-items:start}
@@ -175,23 +163,14 @@ main{max-width:1400px;margin:0 auto;padding-block:20px 60px}
 /* board (base view) */
 .group{margin-bottom:22px}
 .ghead{font-family:var(--body);font-weight:800;font-size:13px;color:var(--muted);padding:0 2px 6px;border-bottom:1px solid var(--line-strong);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.row{display:grid;grid-template-columns:minmax(240px,1fr) minmax(0,2.6fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
-.row{border-left:4px solid var(--line-strong)}
-.row.rag-green{border-left-color:var(--ej-green)}
-.row.rag-amber{border-left-color:var(--xlight-orange)}
-.row.rag-red{border-left-color:var(--dark-orange)}
-.row.rag-blue{border-left-color:var(--sky)}
-.row.needs .def{box-shadow:inset 0 3px 0 var(--orange)}
-@media(max-width:760px){.row{grid-template-columns:1fr}}
-.def{padding:14px 16px;border-right:1px solid var(--line);min-width:0}
-@media(max-width:760px){.def{border-right:0;border-bottom:1px solid var(--line)}}
+.def{min-width:0}
 .def .fa{font-family:var(--display);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:.4px;line-height:1.2;margin:0 0 4px;color:var(--fg)}
 .def .dt{font-size:13px;color:var(--muted);white-space:pre-line;margin:0 0 10px}
 .def .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12.5px;margin:0;padding-top:8px;border-top:1px solid var(--line)}
 .def .kv div{display:contents}
 .def .kv dt{font-weight:700;font-size:12px;color:var(--faint);white-space:nowrap}
 .def .kv dd{margin:0;white-space:pre-line;color:var(--fg);font-variant-numeric:tabular-nums}
-.upd{padding:14px 18px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.upd{min-width:0;display:flex;flex-direction:column;gap:12px}
 .upd .uhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:26px}
 .upd .uhead .when{font-size:12px;color:var(--faint);margin-left:auto}
 .upd .text{white-space:pre-wrap;font-size:13.5px;line-height:1.55;margin:0}
@@ -211,7 +190,8 @@ details.prev .ft{color:var(--muted);margin-top:6px;border-left:2px solid var(--s
 details.prev .ft .h{color:var(--muted);border-color:var(--line)}
 .upd .barrier{background:var(--orange-soft);border-left:3px solid var(--orange);border-radius:0 8px 8px 0;padding:8px 10px;font-size:13px}
 .upd .barrier b{font-weight:800;font-size:12px;color:var(--dark-orange);display:block;margin-bottom:2px}
-.upd .ufoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto}
+.upd .ufoot{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.upd .ufoot .when{font-size:12px;color:var(--faint)}
 details.prev{font-size:13px}
 details.prev summary{cursor:pointer;color:var(--muted);font-weight:700;font-size:12px;list-style:none;display:inline-flex;align-items:center;gap:6px}
 details.prev summary::before{content:"▸";font-size:11px;transition:transform .15s}
@@ -220,6 +200,75 @@ details.prev .text{color:var(--muted);margin-top:6px;border-left:2px solid var(-
 .clamp{max-height:11em;overflow:hidden;position:relative}
 .clamp::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2.5em;background:linear-gradient(to bottom,transparent,var(--surface))}
 .more{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-weight:700;font-size:12px;padding:0;align-self:flex-start}
+
+
+/* network dashboard */
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.kpi{background:var(--surface);padding:14px 16px}
+.kpi .v{font-family:var(--display);font-weight:600;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .v small{font-family:var(--body);font-size:14px;font-weight:700;color:var(--faint);margin-left:2px}
+.kpi .l{font-size:12.5px;font-weight:700;color:var(--muted);margin-top:6px}
+.kpi.bad .v{color:var(--red)}.kpi.warn .v{color:var(--amber)}.kpi.hot .v{color:var(--orange)}
+.card.flush{padding:0;overflow:hidden}
+.ntable{min-width:760px}
+.ntable th,.ntable td{padding:12px 14px;vertical-align:middle}
+.ntable th.c,.ntable td.c{text-align:center}
+.ntable tr.link{cursor:pointer}
+.ntable tr.link:hover td{background:var(--surface-2)}
+.ntable .bcode{font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:.6px}
+.ntable .bname{color:var(--muted);font-size:13px;margin-left:6px}
+@media(max-width:600px){.ntable .bname{display:none}}
+.ntable b{font-size:15px;font-variant-numeric:tabular-nums}
+.ntable .of{color:var(--faint);font-weight:700}
+.ntable .miss{font-size:11.5px;font-weight:700;color:var(--amber)}
+.zero{color:var(--faint)}
+.t-green{color:var(--green)}.t-amber{color:var(--amber)}.t-red{color:var(--red)}.t-blue{color:var(--blue)}
+.ntable .chip.board{cursor:pointer}
+
+/* base tracker */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface-2);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;border-radius:8px;padding:5px 11px;font-weight:700;font-size:12.5px;color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.seg button span{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.seg button:hover:not([disabled]){color:var(--fg)}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+.seg button.on span{color:var(--orange)}
+.seg button[disabled]{opacity:.45;cursor:default}
+.toolbar input[type=search]{flex:1 1 220px;max-width:340px;width:auto;padding:7px 12px;border-radius:10px}
+.toolbar .btn.ghost{margin-left:auto}
+.ilist{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.it-head,.it-row{display:grid;grid-template-columns:118px minmax(0,2.2fr) minmax(0,1.3fr) minmax(0,3fr) 64px 18px;gap:14px;align-items:center;padding:0 16px}
+.it-head{font-size:12px;font-weight:700;color:var(--muted);padding-block:9px;border-bottom:1px solid var(--line-strong);background:var(--surface-2)}
+.grp-h{display:flex;align-items:center;gap:8px;width:100%;border:0;background:var(--surface);text-align:left;padding:14px 16px 6px;font-weight:800;font-size:12.5px;color:var(--muted)}
+.grp-h .n{font-weight:700;color:var(--faint)}
+.grp-h .caret{font-size:10px;transition:transform .15s}
+.grp.shut .grp-h{padding-bottom:12px;border-bottom:1px solid var(--line)}
+.grp.shut .grp-h .caret{transform:rotate(-90deg)}
+.it{border-bottom:1px solid var(--line);position:relative}
+.grp:last-child .it:last-child{border-bottom:0}
+.it::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent}
+.it.rag-green::before{background:var(--ej-green)}.it.rag-amber::before{background:var(--xlight-orange)}.it.rag-red::before{background:var(--dark-orange)}.it.rag-blue::before{background:var(--sky)}
+.it-row{min-height:52px;padding-block:9px;cursor:pointer}
+.it-row:hover{background:var(--surface-2)}
+.it.open>.it-row{background:var(--surface-2)}
+.c-ti .ti{font-weight:800;font-size:13.5px;line-height:1.3}
+.c-ti .ti .chip{vertical-align:1px;margin-left:4px;padding:0 7px;font-size:10.5px}
+.c-ti .sub,.c-kpi{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-up{font-size:13px;color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45}
+.c-when{font-size:12px;color:var(--faint);text-align:right;white-space:nowrap}
+.c-chev{color:var(--faint);font-size:18px;transition:transform .15s;text-align:center}
+.it.open .c-chev{transform:rotate(90deg)}
+.nostat{font-size:12px;font-weight:700;color:var(--faint)}
+.nostat.missing{color:var(--amber)}
+.it-body{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2.6fr);gap:28px;padding:16px 16px 20px 150px;background:var(--surface-2);border-top:1px solid var(--line)}
+@media(max-width:900px){
+  .it-head{display:none}
+  .it-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"st ti ch" "up up up";row-gap:6px}
+  .c-st{grid-area:st}.c-ti{grid-area:ti}.c-chev{grid-area:ch}.c-up{grid-area:up}.c-kpi,.c-when{display:none}
+  .it-body{grid-template-columns:1fr;padding:14px 16px 18px;gap:16px}
+  .toolbar .btn.ghost{margin-left:0}
+}
 
 /* feedback card */
 #fbcard,.card.barriers{margin-top:22px}
@@ -333,7 +382,7 @@ const S = {
   view: 'network',
   inits: [], updates: {}, prevUpdates: {}, feedback: {}, barriers: [],
   db: null, user: null, uid: null, canWrite: null, names: {},
-  unsub: {}, expanded: {},
+  unsub: {}, expanded: {}, open: {}, collapsed: {}, filter: 'all', q: '',
 };
 
 const $ = (s, r=document) => r.querySelector(s);
@@ -403,41 +452,51 @@ function render(){
   if(focusId){ const el=document.getElementById(focusId); if(el){ el.focus({preventScroll:true}); if(sel&&el.setSelectionRange){ try{ el.setSelectionRange(sel[0],sel[1]); }catch(e){} } } }
 }
 
-function ragBar(c, total){
-  if(!total) return '<div class="ragbar"></div>';
-  const order=['green','amber','red','blue',''];
-  const col={green:'var(--ej-green)',amber:'var(--xlight-orange)',red:'var(--dark-orange)',blue:'var(--sky)','':'var(--line)'};
-  return `<div class="ragbar" title="${total} initiatives">${order.map(k=>c[k]?`<span style="width:${100*c[k]/total}%;background:${col[k]}" title="${RAG[k]}: ${c[k]}"></span>`:'').join('')}</div>`;
+// First readable line of an update, without section labels or bullet marks, for the one-line list view.
+function snippet(text){
+  for(const raw of String(text||'').split('\n')){
+    const l=raw.replace(/\t/g,' ').trim(); if(!l) continue;
+    const bare=l.replace(/[:：\s]+$/,'');
+    if(bare.length<=40 && /^[A-Z0-9][A-Z0-9 &\/'()\-–]+$/.test(bare)) continue;
+    return l.replace(/^(?:[•\-–▪■]|o\s|\d+[.)])\s*/,'');
+  }
+  return '';
 }
+const statusCell = u => u && u.rag ? `<span class="chip ${u.rag}">${RAG[u.rag]}</span>`
+  : u && u.text ? '<span class="nostat">No status</span>' : '<span class="nostat missing">Not updated</span>';
+const num = (n, cls='') => n ? `<b class="${cls}">${n}</b>` : '<span class="zero">–</span>';
 
 function renderNetwork(){
-  const cards = BASES.map(b=>{
-    const st=baseStats(b.code);
-    return `<div class="card bcard" data-go="${b.code}" role="button" tabindex="0">
-      <div class="top"><span class="code">${b.code}</span><span class="name">${esc(b.name)}</span></div>
-      <div class="prog"><span><b>${st.updated}</b> of ${st.total} updated</span>${ragBar(st.counts, st.total)}</div>
-      <div class="flags">
-        ${st.counts.green?`<span class="chip green">${st.counts.green} on track</span>`:''}
-        ${st.counts.amber?`<span class="chip amber">${st.counts.amber} at risk</span>`:''}
-        ${st.counts.red?`<span class="chip red">${st.counts.red} off track</span>`:''}
-        ${st.counts.blue?`<span class="chip blue">${st.counts.blue} complete</span>`:''}
-        ${st.needs?`<span class="chip board">${st.needs} for the board</span>`:''}
-        ${st.openB?`<span class="chip warn">${st.openB} open barrier${st.openB>1?'s':''}</span>`:''}
-        ${st.fb?'<span class="chip ok">Feedback given</span>':''}
-        ${!(st.counts.green||st.counts.amber||st.counts.red||st.counts.blue||st.needs||st.openB||st.fb)?'<span class="quiet">No statuses or flags yet</span>':''}
-      </div>
-    </div>`;
-  }).join('');
+  const rows = BASES.map(b=>({b, st:baseStats(b.code)}));
+  const T = rows.reduce((a,{st})=>{ a.total+=st.total; a.updated+=st.updated; a.red+=st.counts.red; a.amber+=st.counts.amber; a.green+=st.counts.green; a.blue+=st.counts.blue; a.needs+=st.needs; a.openB+=st.openB; a.fb+=st.fb?1:0; return a; }, {total:0,updated:0,red:0,amber:0,green:0,blue:0,needs:0,openB:0,fb:0});
   const needs = [];
   BASES.forEach(b=> initsFor(b.code).forEach(i=>{ const u=upd(i.id); if(u&&u.needsBoard) needs.push({b:b.code,i,u}); }));
   const net = S.feedback['NET_'+S.month] || {};
   const dis = S.canWrite===false ? 'disabled' : '';
-  return `<div class="phead"><h2>Network <small>${mlabel(S.month)} · ${BASES.length} bases · ${S.inits.filter(i=>!i.archived).length} initiatives</small></h2>
+  const kpi = (n,l,cls,sub) => `<div class="kpi ${n&&cls?cls:''}"><div class="v">${n}${sub?`<small>${sub}</small>`:''}</div><div class="l">${l}</div></div>`;
+  return `<div class="phead"><h2>Network <small>${mlabel(S.month)} · ${BASES.length} bases · ${T.total} initiatives</small></h2>
       <div class="actions"><button class="btn" id="copyNet">Copy month summary</button></div></div>
-    ${BASES.length?`<div class="grid">${cards}</div>`:'<div class="empty">No bases on the board yet. Use "Add a base" to start.</div>'}
+    <div class="kpis">
+      ${kpi(T.updated,'Updates in','', ' / '+T.total)}
+      ${kpi(T.red,'Off track','bad')}
+      ${kpi(T.amber,'At risk','warn')}
+      ${kpi(T.needs,'For the board','hot')}
+      ${kpi(T.openB,'Open barriers','bad')}
+      ${kpi(T.fb,'Feedback given','', ' / '+BASES.length)}
+    </div>
+    ${BASES.length ? `<div class="card flush"><div class="tablewrap"><table class="ntable">
+      <thead><tr><th>Base</th><th class="c">Updated</th><th class="c">On track</th><th class="c">At risk</th><th class="c">Off track</th><th class="c">Complete</th><th class="c">For board</th><th class="c">Barriers</th><th class="c">Feedback</th></tr></thead>
+      <tbody>${rows.map(({b,st})=>{ const missing=st.total-st.updated; return `<tr class="link" data-go="${b.code}" tabindex="0">
+        <td><span class="bcode">${b.code}</span> <span class="bname">${esc(b.name)}</span></td>
+        <td class="c"><b>${st.updated}</b><span class="of">/${st.total}</span>${missing?`<div class="miss">${missing} missing</div>`:''}</td>
+        <td class="c">${num(st.counts.green,'t-green')}</td><td class="c">${num(st.counts.amber,'t-amber')}</td><td class="c">${num(st.counts.red,'t-red')}</td><td class="c">${num(st.counts.blue,'t-blue')}</td>
+        <td class="c">${st.needs?`<span class="chip board" data-go="${b.code}" data-f="board">${st.needs}</span>`:'<span class="zero">–</span>'}</td>
+        <td class="c">${num(st.openB,'t-red')}</td>
+        <td class="c">${st.fb?'<span class="t-green">✓</span>':'<span class="zero">–</span>'}</td>
+      </tr>`; }).join('')}</tbody></table></div></div>` : '<div class="empty">No bases on the board yet. Add one under Initiatives.</div>'}
     <div class="net2">
       <div class="card asks"><h3>Asks of the board <span class="n">${needs.length}</span></h3>
-        ${needs.length ? needs.map(n=>`<div class="ask"><div class="t"><span>${n.b} · ${esc(n.i.focusArea||n.i.detail.split('\n')[0])}</span><button class="more" data-go="${n.b}">Open ${n.b}</button></div>
+        ${needs.length ? needs.map(n=>`<div class="ask"><div class="t"><span>${n.b} · ${esc(n.i.focusArea||n.i.detail.split('\n')[0])}</span><button class="more" data-go="${n.b}" data-f="board">Open</button></div>
           <p>${esc(n.u.barrier||'(no detail given)')}</p></div>`).join('') : '<div class="empty">Nothing flagged for the board this month.</div>'}
       </div>
       <div class="card notes"><h3>Board meeting notes</h3>
@@ -447,41 +506,71 @@ function renderNetwork(){
     </div>`;
 }
 
+const FILTERS = [
+  {k:'all', l:'All', test:()=>true},
+  {k:'missing', l:'Not updated', test:u=>!(u&&(u.text||u.rag))},
+  {k:'red', l:'Off track', test:u=>u&&u.rag==='red'},
+  {k:'amber', l:'At risk', test:u=>u&&u.rag==='amber'},
+  {k:'board', l:'For the board', test:u=>u&&u.needsBoard},
+];
+// The base's initiatives after the active filter and search, which is also what "Expand all" acts on.
+function baseList(base){
+  const all = initsFor(base);
+  const f = FILTERS.find(x=>x.k===S.filter) || FILTERS[0];
+  const q = (S.q||'').trim().toLowerCase();
+  const list = all.filter(i=>{ const u=upd(i.id); if(!f.test(u)) return false; if(!q) return true;
+    return [i.focusArea,i.detail,i.kpi,i.group,u&&u.text,u&&u.barrier].some(x=>String(x||'').toLowerCase().includes(q)); });
+  return {all, list, f};
+}
 function renderBase(base){
-  const b = ALLBASES.find(x=>x.code===base); if(!b){ return '<div class="empty">Loading…</div>'; } const list = initsFor(base); const st=baseStats(base);
-  const groups = []; list.forEach(i=>{ let g=groups.find(x=>x.name===(i.group||'Other')); if(!g){g={name:i.group||'Other',items:[]};groups.push(g);} g.items.push(i); });
-  const pk = prevKey(S.month);
-  const dis = S.canWrite===false;
-  const rows = groups.map(g=>`<section class="group"><div class="ghead"><span>${esc(g.name)}</span><span>${g.items.length}</span></div>
-    ${g.items.map(i=>{
-      const u=upd(i.id)||{}; const p=pk?upd(i.id,pk):null; const has=!!(u.text||u.rag);
-      const title = i.focusArea || i.detail.split('\n')[0];
-      const detail = i.focusArea ? i.detail : i.detail.split('\n').slice(1).join('\n');
-      const long = (u.text||'').length>700 && !S.expanded[i.id];
-      return `<article class="row rag-${u.rag||'none'} ${u.needsBoard?'needs':''}" id="r-${i.id}">
+  const b = ALLBASES.find(x=>x.code===base); if(!b){ return '<div class="empty">Loading…</div>'; }
+  const {all, list, f} = baseList(base); const st=baseStats(base);
+  const pk = prevKey(S.month); const dis = S.canWrite===false;
+  const groups = []; list.forEach(i=>{ const name=i.group||'Other'; let g=groups.find(x=>x.name===name); if(!g){g={name,items:[]};groups.push(g);} g.items.push(i); });
+  const item = i => {
+    const u=upd(i.id)||{}; const p=pk?upd(i.id,pk):null; const has=!!(u.text||u.rag); const open=!!S.open[i.id];
+    const title = i.focusArea || i.detail.split('\n')[0];
+    const detail = i.focusArea ? i.detail : i.detail.split('\n').slice(1).join('\n');
+    const sub = i.focusArea ? i.detail.split('\n')[0] : '';
+    return `<div class="it ${open?'open':''} rag-${u.rag||'none'}" id="r-${i.id}">
+      <div class="it-row" data-toggle="${i.id}" role="button" tabindex="0" aria-expanded="${open}">
+        <div class="c-st">${statusCell(u)}</div>
+        <div class="c-ti"><div class="ti">${esc(title)}${u.needsBoard?' <span class="chip board">Board</span>':''}</div>${sub?`<div class="sub">${esc(sub)}</div>`:''}</div>
+        <div class="c-kpi">${i.kpi?esc(i.kpi.split('\n')[0]):'<span class="zero">–</span>'}</div>
+        <div class="c-up">${has&&u.text?esc(snippet(u.text)):`<span class="zero">${has?'':'No '+mlabel(S.month)+' update'}</span>`}</div>
+        <div class="c-when">${u.updatedAt?fmtWhen(u.updatedAt):''}</div>
+        <div class="c-chev" aria-hidden="true">›</div>
+      </div>
+      ${open?`<div class="it-body">
         <div class="def">
-          <h4 class="fa">${esc(title)}</h4>
           ${detail?`<p class="dt">${esc(detail)}</p>`:''}
           <dl class="kv">${i.kpi?`<div><dt>KPI</dt><dd>${esc(i.kpi)}</dd></div>`:''}${i.baseline?`<div><dt>S25 baseline</dt><dd>${esc(i.baseline)}</dd></div>`:''}</dl>
         </div>
         <div class="upd">
-          <div class="uhead">
-            ${u.rag?`<span class="chip ${u.rag}">${RAG[u.rag]}</span>`:''}
-            ${u.needsBoard?'<span class="chip board">Needs the board</span>':''}
-            <span class="when">${u.updatedAt?`${fmtWhen(u.updatedAt)}${u.updatedBy&&S.names[u.updatedBy]&&S.names[u.updatedBy]!=='Someone'?' · '+esc(who(u.updatedBy)):''}`:''}</span>
-            ${has&&!dis?`<button class="btn sm" data-edit="${i.id}">Edit</button>`:''}
-          </div>
-          ${has ? `<div class="${long?'clamp':''}">${fmt(u.text)}</div>${long?`<button class="more" data-more="${i.id}">Show full update</button>`:''}` : `<p class="text empty">No ${mlabel(S.month)} update yet.</p>`}
+          ${has ? fmt(u.text) : `<p class="text empty">No ${mlabel(S.month)} update yet.</p>`}
           ${u.needsBoard && u.barrier ? `<div class="barrier"><b>Where we need the board</b>${esc(u.barrier)}</div>`:''}
           ${p && p.text ? `<details class="prev"><summary>${mlabel(pk)} update</summary>${fmt(p.text)}</details>`:''}
-          ${!has&&!dis?`<div class="ufoot"><button class="btn sm primary" data-edit="${i.id}">Add update</button></div>`:''}
+          <div class="ufoot">${dis?'':`<button class="btn sm ${has?'':'primary'}" data-edit="${i.id}">${has?'Edit update':'Add update'}</button>`}<span class="when">${u.updatedAt?`Saved ${fmtWhen(u.updatedAt)}${u.updatedBy&&S.names[u.updatedBy]&&S.names[u.updatedBy]!=='Someone'?' by '+esc(who(u.updatedBy)):''}`:''}</span></div>
         </div>
-      </article>`;}).join('')}</section>`).join('');
+      </div>`:''}
+    </div>`;
+  };
+  const body = groups.map(g=>{ const shut=!!S.collapsed[base+'|'+g.name]; return `<section class="grp ${shut?'shut':''}">
+      <button class="grp-h" data-collapse="${esc(base+'|'+g.name)}" aria-expanded="${!shut}"><span class="caret">▾</span>${esc(g.name)}<span class="n">${g.items.length}</span></button>
+      ${shut?'':g.items.map(item).join('')}</section>`; }).join('');
   const fb = S.feedback[base+'_'+S.month] || {};
   const d = dis?'disabled':'';
-  return `<div class="phead"><h2>${base} <small>${esc(b.name)} · ${mlabel(S.month)} · ${st.updated} of ${st.total} updated${st.needs?` · ${st.needs} flagged for the board`:''}</small></h2>
+  const allOpen = list.length && list.every(i=>S.open[i.id]);
+  return `<div class="phead"><h2>${base} <small>${esc(b.name)} · ${mlabel(S.month)} · ${st.updated} of ${st.total} updated${st.needs?` · ${st.needs} for the board`:''}</small></h2>
       <div class="actions">${dis?`<button class="btn" id="copyBase" data-base="${base}">Copy as text</button>`:`<button class="btn" data-newbarrier="${base}">Log a barrier</button><details class="pop"><summary class="btn">More</summary><div class="menu"><button id="copyBase" data-base="${base}">Copy as text</button><button data-archbase="${base}">Archive ${base}</button></div></details>`}</div></div>
-    ${rows || '<div class="empty">No initiatives set up for this base yet. Add them under Initiatives.</div>'}
+    <div class="toolbar">
+      <div class="seg" role="tablist">${FILTERS.map(x=>{ const n=all.filter(i=>x.test(upd(i.id))).length; return `<button class="${x.k===f.k?'on':''}" data-filter="${x.k}" ${x.k!=='all'&&!n?'disabled':''}>${x.l}<span>${n}</span></button>`; }).join('')}</div>
+      <input type="search" id="bq" placeholder="Search initiatives and updates" value="${esc(S.q||'')}" autocomplete="off">
+      <button class="btn ghost" id="toggleAll">${allOpen?'Collapse all':'Expand all'}</button>
+    </div>
+    ${all.length ? (list.length ? `<div class="ilist"><div class="it-head"><div>Status</div><div>Initiative</div><div>KPI</div><div>Latest update</div><div>Saved</div><div></div></div>${body}</div>`
+      : '<div class="empty">No initiatives match. <button class="more" data-filter="all" data-clearq="1">Clear filters</button></div>')
+      : '<div class="empty">No initiatives set up for this base yet. Add them under Initiatives.</div>'}
     <section class="card" id="fbcard"><h3>Board feedback <span class="n">${mlabel(S.month)}</span></h3>
       <div class="fb">
         <div><label for="fbWorking">What's working</label><textarea id="fbWorking" ${d} placeholder="What the board recognised…">${esc(fb.working||'')}</textarea></div>
@@ -709,10 +798,14 @@ async function copyText(t){ try{ await navigator.clipboard.writeText(t); toast('
 
 /* ---------- events ---------- */
 $('#months').addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(!b) return; S.month=b.dataset.m; S.expanded={}; subscribeMonth(); render(); });
-$('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b) return; S.view=b.dataset.v; render(); window.scrollTo({top:0}); });
+$('#nav').addEventListener('click',e=>{ const b=e.target.closest('[data-v]'); if(!b) return; if(S.view!==b.dataset.v){ S.filter='all'; S.q=''; } S.view=b.dataset.v; render(); window.scrollTo({top:0}); });
 $('#view').addEventListener('click',async e=>{
   const t=e.target;
-  const go=t.closest('[data-go]'); if(go && !t.closest('textarea')){ S.view=go.dataset.go; render(); window.scrollTo({top:0}); return; }
+  const tg=t.closest('[data-toggle]'); if(tg){ S.open[tg.dataset.toggle]=!S.open[tg.dataset.toggle]; render(); return; }
+  const cl=t.closest('[data-collapse]'); if(cl){ const k=cl.dataset.collapse; S.collapsed[k]=!S.collapsed[k]; render(); return; }
+  const fl=t.closest('[data-filter]'); if(fl){ S.filter=fl.dataset.filter; if(fl.dataset.clearq) S.q=''; render(); return; }
+  if(t.id==='toggleAll'){ const {list}=baseList(S.view); const allOpen=list.every(i=>S.open[i.id]); list.forEach(i=>{ S.open[i.id]=!allOpen; }); render(); return; }
+  const go=t.closest('[data-go]'); if(go && !t.closest('textarea')){ S.view=go.dataset.go; S.filter=go.dataset.f||'all'; S.q=''; render(); window.scrollTo({top:0}); return; }
   if(t.id==='copyBase'){ copyText(baseText(t.dataset.base)); return; }
   if(t.id==='addBase'){ addBase(); return; }
   if(t.dataset.archbase){ archiveBase(t.dataset.archbase); return; }
@@ -727,7 +820,13 @@ $('#view').addEventListener('click',async e=>{
   if(t.id==='saveFb'){ saveFeedback(t.dataset.base+'_'+S.month,{base:t.dataset.base, working:$('#fbWorking').value.trim(), focus:$('#fbFocus').value.trim(), actions:$('#fbActions').value.trim()}); return; }
   if(t.id==='saveNet'){ saveFeedback('NET_'+S.month,{base:'NET', notes:$('#netNotes').value.trim()}); return; }
 });
-$('#view').addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.classList.contains('bcard')){ S.view=e.target.dataset.go; render(); } });
+$('#view').addEventListener('keydown',e=>{
+  if(e.key!=='Enter' && e.key!==' ') return;
+  const t=e.target;
+  if(t.dataset.toggle){ e.preventDefault(); S.open[t.dataset.toggle]=!S.open[t.dataset.toggle]; render(); return; }
+  if(t.matches('tr[data-go]')){ e.preventDefault(); S.view=t.dataset.go; S.filter='all'; S.q=''; render(); }
+});
+$('#view').addEventListener('input',e=>{ if(e.target.id==='bq'){ S.q=e.target.value; render(); } });
 $('#view').addEventListener('change',e=>{
   const t=e.target;
   if(t.id==='bfBase'||t.id==='bfStatus'){ S.bfilter={base:$('#bfBase').value, status:$('#bfStatus').value}; render(); return; }
