@@ -60,9 +60,18 @@ Do this for every column marked "Indexed" below:
 1. In **Board Feedback**: **⚙ → List settings → Permissions for this list → Stop Inheriting Permissions**.
 2. Give the board group **Edit**. Give everyone else **Read**.
 
+In the tables below, the third column lists the options to switch on for that column:
+
+- **Required**: section 1c.
+- **Enforce unique values**: section 1c.
+- **Indexed**: section 1d.
+- **Default Yes/No**: the *Default value* box when you add the column.
+
+Anything else in that column is just an example of what goes in it. Blank means nothing to switch on.
+
 ### Initiatives
 
-| Column | Type | Settings |
+| Column | Type | Switch on (see 1c–1d) / example value |
 |---|---|---|
 | Title | (already there) | Focus area, e.g. FIRST WAVE |
 | Key | Single line of text | Required + enforce unique values. e.g. `lgw-03` |
@@ -78,7 +87,7 @@ Add one row per base with Title **Base-wide**, for asks that don't belong to a s
 
 ### Updates (one row per initiative per month)
 
-| Column | Type | Settings |
+| Column | Type | Switch on (see 1c–1d) / example value |
 |---|---|---|
 | Title | (already there) | Enforce unique values. `<Key>_<YYYY-MM>`, e.g. `lgw-03_2026-10` |
 | InitiativeKey | Single line of text | Indexed |
@@ -96,7 +105,7 @@ Add one row per base with Title **Base-wide**, for asks that don't belong to a s
 
 ### Board Feedback (one row per base per month, plus `NET_<month>` for network notes)
 
-| Column | Type | Settings |
+| Column | Type | Switch on (see 1c–1d) / example value |
 |---|---|---|
 | Title | (already there) | Enforce unique values. `LGW_2026-10` or `NET_2026-10` |
 | Base | Single line of text | |
