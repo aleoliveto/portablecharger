@@ -95,15 +95,14 @@
     const el = document.createElement('div');
     el.id = 'bbLogin';
     el.innerHTML = `<style>
-      #bbLogin{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:16px;background:var(--bg,#f6f6f6);font-family:Nunito,system-ui,sans-serif}
-      #bbLogin form{width:100%;max-width:360px;background:var(--card,#fff);color:var(--ink,#1a1a1a);border-radius:14px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+      #bbLogin{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:16px;background:var(--bg);font-family:Nunito,system-ui,sans-serif}
+      #bbLogin form{width:100%;max-width:360px;background:var(--surface);color:var(--fg);border-radius:14px;padding:28px 24px;box-shadow:0 8px 30px rgba(0,0,0,.12)}
       #bbLogin h1{margin:0 0 4px;font:600 26px Oswald,system-ui,sans-serif;color:#FF6600;letter-spacing:.02em}
-      #bbLogin p{margin:0 0 18px;color:#696D6F;font-size:14px}
+      #bbLogin p{margin:0 0 18px;color:var(--muted);font-size:14px}
       #bbLogin label{display:block;font-weight:700;font-size:13px;margin:12px 0 6px}
-      #bbLogin input{box-sizing:border-box;width:100%;padding:10px 12px;font:inherit;font-size:15px;border:1px solid #c8c9ca;border-radius:8px;background:transparent;color:inherit}
+      #bbLogin input{box-sizing:border-box;width:100%;padding:10px 12px;font:inherit;font-size:15px;border:1px solid var(--line-strong);border-radius:8px;background:transparent;color:inherit}
       #bbLogin button{margin-top:18px;width:100%;padding:11px;border:0;border-radius:8px;background:#FF6600;color:#fff;font:600 16px Oswald,system-ui,sans-serif;letter-spacing:.04em;cursor:pointer}
       #bbLogin .err{color:#FF4600;font-weight:700;font-size:13px;min-height:18px;margin-top:10px}
-      @media (prefers-color-scheme:dark){#bbLogin{background:#121314}#bbLogin form{background:#1d1f20;color:#eee}#bbLogin input{border-color:#4a4d4f}}
     </style>
     <form autocomplete="on">
       <h1>BIG BOARD FY27</h1><p>Focus Initiatives tracker. Sign in to continue.</p>
@@ -129,12 +128,13 @@
   function accountBar() {
     const bar = document.createElement('div');
     bar.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:50;display:flex;gap:6px;font:12px Nunito,system-ui,sans-serif';
-    const btn = 'padding:6px 10px;border-radius:999px;border:1px solid rgba(105,109,111,.4);background:var(--card,#fff);color:inherit;cursor:pointer;text-decoration:none';
+    const btn = 'padding:6px 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);font:inherit;cursor:pointer;text-decoration:none;box-shadow:var(--shadow)';
     bar.innerHTML = `<span style="${btn};cursor:default">${me.name.replace(/[&<>"']/g, '')}${me.canWrite ? '' : ' · view only'}</span>
       <a href="/api/export" style="${btn}" title="Download every document as JSON">Export</a>
       ${me.canWrite ? `<a href="/admin.html" style="${btn}">Import</a>` : ''}
       <button type="button" style="${btn}" id="bbOut">Sign out</button>`;
     document.body.appendChild(bar);
+    document.body.style.paddingBottom = '56px'; // keep the bar clear of the last card's buttons
     bar.querySelector('#bbOut').addEventListener('click', async () => { await fetch('/api/logout', { method: 'POST' }); location.reload(); });
   }
 
