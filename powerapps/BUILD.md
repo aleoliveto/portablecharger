@@ -1172,7 +1172,7 @@ Color: cMuted
 ```
 Items:
     With({q: Lower(Trim(txtSearch.Text))},
-        SortByColumns(
+        Sort(
             Filter(
                 AddColumns(Filter(colInits, Base = varView),
                     U, LookUp(colUpd  As x, x.InitiativeKey = Key),
@@ -1185,7 +1185,7 @@ Items:
                     true)
                 && (IsBlank(q) || q in Lower(Title) || q in Lower(Detail) || q in Lower(U.UpdateText))
             ),
-            SortOrder))
+            ThisRecord.SortOrder))
 TemplateSize: 64
 TemplatePadding: 0
 OnSelect:
@@ -1825,14 +1825,14 @@ Color: cMuted
 
 ```
 Items:
-    SortByColumns(
+    Sort(
         Filter(colBar,
             (ddBarBase.Selected.Value = "All" || Base = ddBarBase.Selected.Value) &&
             Switch(ddBarStatus.Selected.Value,
                 "Open and with the board", BarrierStatus.Value <> "Resolved",
                 "All", true,
                 BarrierStatus.Value = ddBarStatus.Selected.Value)),
-        RaisedOn, SortOrder.Ascending)
+        RaisedOn)
 TemplateSize: 76
 TemplatePadding: 0
 ```
