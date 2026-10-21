@@ -4,67 +4,161 @@ A canvas app on three SharePoint lists, built control by control. Every position
 
 The pictures next to each screen are drawn from the same numbers as the tables, with sample data.
 
-## 1. The three lists
+## 1. The three lists (SharePoint Online, in the browser)
 
-Create them on one SharePoint site. Use exactly these column names (no spaces), so they match the formulas. All multi-line columns must be **plain text**, not rich text.
+### 1a. Create a list
 
-**Initiatives**
+1. Open your SharePoint site.
+2. Click **+ New → List → Blank list**.
+3. Name it `Initiatives`. Untick *Show in site navigation* if you don't want it in the menu. Click **Create**.
+4. Repeat for `Updates` and `Board Feedback`.
+
+### 1b. Add a column
+
+In the list, click **+ Add column** (to the right of the column headings), pick the type, then type the **Name** exactly as in the tables below.
+
+| Type in the tables | What to pick in "+ Add column" | Extra settings in the side panel |
+|---|---|---|
+| Single line of text | **Single line of text** | |
+| Multiple lines, plain text | **Multiple lines of text** | **More options →** switch **Use enhanced rich text** *off* |
+| Number | **Number** | |
+| Yes/No | **Yes/No** | Default value: as listed |
+| Choice | **Choice** | Type each choice on its own line. **Default value: None** |
+| Date only | **Date and time** | **More options →** switch **Include time** *off* |
+
+Click **Save** after each column.
+
+### 1c. Required and unique
+
+For "Required" or "enforce unique values":
+
+1. Click the column heading → **Column settings → Edit**.
+2. Open **More options**.
+3. Switch on **Require that this column contains information** and/or **Enforce unique values**. Unique values also creates the index for you.
+
+For the built-in **Title** column:
+
+1. Click the gear icon **⚙** (top right) → **List settings**.
+2. Under *Columns*, click **Title**.
+3. Set **Enforce unique values: Yes**. Click **OK**.
+
+### 1d. Indexes
+
+Do this for every column marked "Indexed" below:
+
+1. **⚙ → List settings**.
+2. Under *Columns*, click **Indexed columns → Create a new index**.
+3. Pick the column. Click **Create**.
+
+### 1e. Version history
+
+1. **⚙ → List settings → Versioning settings**.
+2. Check **Create a version each time you edit an item** is **Yes**. It's on by default.
+
+### 1f. Board-only editing on Board Feedback
+
+1. In **Board Feedback**: **⚙ → List settings → Permissions for this list → Stop Inheriting Permissions**.
+2. Give the board group **Edit**. Give everyone else **Read**.
+
+### Initiatives
 
 | Column | Type | Settings |
 |---|---|---|
-| Title | (built in) | Focus area, e.g. FIRST WAVE |
-| Key | Single line of text | Required, enforce unique values. e.g. `lgw-03` |
+| Title | (already there) | Focus area, e.g. FIRST WAVE |
+| Key | Single line of text | Required + enforce unique values. e.g. `lgw-03` |
 | Base | Single line of text | Indexed. LGW, PMI, … |
 | Group | Single line of text | e.g. Focus based on Deep Dive |
 | Detail | Multiple lines, plain text | |
 | KPI | Multiple lines, plain text | |
 | Baseline | Multiple lines, plain text | S25 actuals |
 | SortOrder | Number | (not "Order", which SharePoint reserves) |
-| Active | Yes/No | Default Yes |
+| Active | Yes/No | Default **Yes** |
 
-Add one initiative per base titled **Base-wide** for asks that don't belong to a specific initiative.
+Add one row per base with Title **Base-wide**, for asks that don't belong to a specific initiative.
 
-**Updates** (one row per initiative per month)
+### Updates (one row per initiative per month)
 
 | Column | Type | Settings |
 |---|---|---|
-| Title | (built in) | Required, enforce unique values. `<Key>_<YYYY-MM>`, e.g. `lgw-03_2026-10` |
+| Title | (already there) | Enforce unique values. `<Key>_<YYYY-MM>`, e.g. `lgw-03_2026-10` |
 | InitiativeKey | Single line of text | Indexed |
 | Base | Single line of text | Indexed |
 | Month | Single line of text | Indexed. `2026-10` |
-| Status | Choice | On track, At risk, Off track, Complete |
+| Status | Choice | On track / At risk / Off track / Complete |
 | UpdateText | Multiple lines, plain text | |
 | KPIActual | Single line of text | |
-| ForBoard | Yes/No | Default No. Indexed |
+| ForBoard | Yes/No | Default **No**. Indexed |
 | BoardAsk | Multiple lines, plain text | |
-| BarrierStatus | Choice | Open, With the board, Resolved. No default |
+| BarrierStatus | Choice | Open / With the board / Resolved |
 | BarrierOwner | Single line of text | |
 | BoardAction | Single line of text | |
 | RaisedOn | Date only | |
 
-**Board Feedback** (one row per base per month, plus `NET_<month>` for network notes)
+### Board Feedback (one row per base per month, plus `NET_<month>` for network notes)
 
 | Column | Type | Settings |
 |---|---|---|
-| Title | (built in) | Required, enforce unique values. `LGW_2026-10` or `NET_2026-10` |
+| Title | (already there) | Enforce unique values. `LGW_2026-10` or `NET_2026-10` |
 | Base | Single line of text | |
 | Month | Single line of text | Indexed |
-| Working, Focus, Actions, Notes | Multiple lines, plain text | |
+| Working | Multiple lines, plain text | |
+| Focus | Multiple lines, plain text | |
+| Actions | Multiple lines, plain text | |
+| Notes | Multiple lines, plain text | |
 
-On every list, check that **List settings → Versioning settings → Create a version each time you edit an item** is on. That's your edit history.
+**Name columns without spaces when you create them.** SharePoint fixes a column's internal name at creation, and that's what the formulas use. You can change the display name afterwards, but the formulas will still need the original.
 
-**Permissions:** base teams edit Initiatives and Updates. Give Board Feedback edit rights to the board only, by breaking inheritance on that list.
+## 2. Create the app (Power Apps, in the browser)
 
-## 2. Create the app
+### 2a. New app
 
-1. Power Apps → **Create → Blank app → Blank canvas app**, format **Tablet**.
-2. **Settings → Display:** Scale to fit **on**, Lock aspect ratio **on**, Lock orientation **on**. The 1366 × 768 coordinates stay valid on any screen size.
-3. **Settings → Updates:** make sure **User-defined functions** is on, if it is listed. The named formulas below use them.
-4. **Data → Add data → SharePoint** → your site → tick **Initiatives**, **Updates**, **Board Feedback**.
-5. Use **Classic** controls throughout (Insert → Classic). The modern controls have different property names.
-6. Create the five screens: `scrNetwork`, `scrBase`, `scrEdit`, `scrBarriers`, `scrFeedback`. Set every screen's **Fill** to `cBg`.
+1. Go to **make.powerapps.com**. Check the environment (top right) is your organisation's default, unless IT gave you another.
+2. Left menu: **+ Create → Blank app → Blank canvas app → Create**.
+3. App name: `BIG BOARD`. Format: **Tablet**. Click **Create**.
 
-**Styling defaults.** Set these once on a control, then copy that control as you build:
+### 2b. App settings
+
+1. Top bar: **Settings** (gear).
+2. **Display:** turn **Scale to fit**, **Lock aspect ratio** and **Lock orientation** *on*.
+3. **Updates → New** (or **Preview**): turn on **User-defined functions**, if it's listed. Close.
+
+### 2c. Connect the lists
+
+1. Left rail: **Data** (cylinder icon) **→ + Add data**.
+2. Search **SharePoint**, then choose **Connect directly (cloud services)**.
+3. Pick your site from *Recent sites*, or paste its URL. Tick **Initiatives**, **Updates**, **Board Feedback**. Click **Connect**.
+
+### 2d. Screens
+
+1. Left rail: **Tree view**. Click **+ New screen → Blank**, four times.
+2. Rename the five screens by double-clicking each name: `scrNetwork`, `scrBase`, `scrEdit`, `scrBarriers`, `scrFeedback`.
+3. Set each screen's **Fill** property to `cBg`.
+
+### 2e. Adding a control and setting its position
+
+1. Left rail: **+ Insert**. Search **Label**, **Button**, **Text input**, **Drop down**, **Toggle** or **Rectangle**, and pick the one under the **Classic** heading. For galleries, choose **Blank vertical gallery** or **Blank horizontal gallery**.
+2. Rename it in **Tree view** by double-clicking.
+3. Set **X, Y, Width, Height** in the right-hand **Properties** pane, under *Position* and *Size*.
+4. For every other property, pick it from the **property drop-down** at the left of the formula bar and paste the formula into the formula bar.
+
+**Putting controls inside a gallery:** select the gallery, click the **pencil icon** at its top-left (edit the template), then insert. Inserted controls go into the first row, and their X/Y are measured from that row's top-left.
+
+**App-level formulas:** in Tree view, click **App** at the top. Choose **Formulas** or **OnStart** in the property drop-down.
+
+### 2f. Save, publish, put it on SharePoint
+
+1. **Ctrl+S**, then **Publish** (top right) **→ Publish this version**.
+2. **Share it:** **Share** (top right). Add the people or group. The lists' SharePoint permissions still decide who can edit.
+3. **Find its link:** go to **make.powerapps.com → Apps → … next to BIG BOARD → Details** and copy the **Web link**.
+4. **Add it to a SharePoint page:**
+   1. Open the page and click **Edit**.
+   2. Click **+**, choose **Power Apps**, paste the link, and set the height to about **800**.
+   3. Click **Republish**.
+5. **Optional, Teams:** **Apps → … → Add to Teams**.
+
+### 2g. Styling defaults
+
+Set these once on a control, then copy that control as you build:
 
 - **Labels:** Font `Font.'Segoe UI'`, Size 10.5, Color `cInk`, PaddingLeft 0.
 - **Primary buttons:** Fill `cOrange`, Color White, HoverFill `ColorValue("#FF4600")`, BorderThickness 0, all four radius properties 8.
