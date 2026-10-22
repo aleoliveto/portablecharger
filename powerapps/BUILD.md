@@ -254,7 +254,7 @@ Set(varView, "NETWORK");
 Set(varFilter, "All");
 ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
 // The initiatives that count this month: not completed in an earlier month.
-ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
+ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
 Set(varRegion, "All");
 // Every base in tBaseInfo, in its order.
 ClearCollect(colBases, tBaseInfo);
@@ -379,7 +379,7 @@ Value (right-hand pane): Label
 Default: MonthLabel(varMonth)
 OnChange:
     Set(varMonth, Self.Selected.Key);
-    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
     Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
     Concurrent(
         ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -970,7 +970,7 @@ Value (right-hand pane): Label
 Default: MonthLabel(varMonth)
 OnChange:
     Set(varMonth, Self.Selected.Key);
-    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
     Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
     Concurrent(
         ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -1572,7 +1572,7 @@ OnSelect:
                         If(varStatus = "Complete" || ini.CompletedMonth = varMonth,
                             Patch(Initiatives, ini, {CompletedMonth: If(varStatus = "Complete", varMonth, "")})));
                     ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
-                    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
+                    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
                     ClearCollect(colUpd, Filter(Updates, Month = varMonth));
                     ClearCollect(colBar, Filter(Updates, ForBoard = true));
                     Set(varConflict, false);
@@ -1759,7 +1759,7 @@ OnSelect:
                 Active: true
             });
             ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
-            ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
+            ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
             Notify("Initiative added", NotificationType.Success);
             Back(),
             Notify("Couldn't add: " & FirstError.Message, NotificationType.Error)
@@ -1847,7 +1847,7 @@ Value (right-hand pane): Label
 Default: MonthLabel(varMonth)
 OnChange:
     Set(varMonth, Self.Selected.Key);
-    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
     Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
     Concurrent(
         ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -2097,7 +2097,7 @@ OnSelect:
     Set(varView, ThisItem.Base);
     Set(varFilter, "For the board");
     Set(varMonth, ThisItem.Month);
-    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
     Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
     Concurrent(
         ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
