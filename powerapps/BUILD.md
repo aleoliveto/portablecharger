@@ -1216,7 +1216,7 @@ Size: 11
 
 ```
 Text: "Board"
-Visible: ThisItem.U.ForBoard
+Visible: ThisItem.U.ForBoard || !IsBlank(LookUp(colBar, InitiativeKey = ThisItem.Key && BarrierStatus.Value <> "Resolved"))
 Fill: cOrange
 Color: Color.White
 Size: 8.5
@@ -1295,7 +1295,8 @@ Reset(txtUpdate); Reset(txtKpiA); Reset(tglBoard); Reset(txtAsk)
 | `lblDefHdr` | Label | 168 | 116 | 300 | 20 | |
 | `lblDef` | Label | 168 | 138 | 300 | 290 | |
 | `lblPrevHdr` | Label | 168 | 440 | 300 | 20 | |
-| `lblPrev` | Label | 168 | 462 | 300 | 220 | |
+| `lblPrev` | Label | 168 | 462 | 300 | 130 | |
+| `lblBoardResp` | Label | 168 | 604 | 300 | 84 | |
 | `lblStatusHdr` | Label | 500 | 116 | 300 | 20 | |
 | `galStatus` | Gallery (horizontal, blank) | 500 | 138 | 560 | 40 | |
 | `btnStatus` | Button | 0 | 0 | 128 | 40 | `galStatus` |
@@ -1381,6 +1382,25 @@ Color: cMuted
 Wrap: true
 VerticalAlign: VerticalAlign.Top
 Overflow: Overflow.Scroll
+```
+
+**`lblBoardResp`**
+
+```
+Visible: !IsBlank(LookUp(colBar, InitiativeKey = varInit.Key && BarrierStatus.Value <> "Resolved"))
+Text:
+    With({b: LookUp(colBar, InitiativeKey = varInit.Key && BarrierStatus.Value <> "Resolved")},
+        "Board response: " & Coalesce(b.BarrierStatus.Value, "Open") &
+        If(IsBlank(b.BarrierOwner), "", " · Owner: " & b.BarrierOwner) &
+        If(IsBlank(b.BoardAction), "", Char(10) & b.BoardAction) &
+        If(b.Month = varMonth, "", Char(10) & "(raised " & MonthLabel(b.Month) & ")"))
+Fill: ColorValue("#FFF0E5")
+Color: cInk
+Size: 9.5
+Wrap: true
+VerticalAlign: VerticalAlign.Top
+PaddingLeft: 8
+PaddingTop: 6
 ```
 
 **`lblStatusHdr`**
@@ -1779,7 +1799,8 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `lblBrAge` | Label | 552 | 32 | 120 | 20 | `galBarriers` |
 | `ddBrStatus` | Drop down | 682 | 10 | 170 | 36 | `galBarriers` |
 | `txtBrOwner` | Text input | 872 | 10 | 180 | 36 | `galBarriers` |
-| `txtBrAction` | Text input | 1062 | 10 | 250 | 36 | `galBarriers` |
+| `txtBrAction` | Text input | 1062 | 10 | 220 | 36 | `galBarriers` |
+| `icoBrOpen` | Icon (ChevronRight) | 1290 | 16 | 24 | 24 | `galBarriers` |
 | `recBrSep` | Rectangle | 0 | 75 | 1326 | 1 | `galBarriers` |
 
 ### Properties
@@ -2052,6 +2073,25 @@ OnChange: Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BarrierOwner: Self.T
 Default: ThisItem.BoardAction
 HintText: "What the board will do"
 OnChange: Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BoardAction: Self.Text}))
+```
+
+**`icoBrOpen`** (in `galBarriers`)
+
+```
+Icon: Icon.ChevronRight
+Color: cMuted
+Tooltip: "Open " & ThisItem.Base & ", " & MonthLabel(ThisItem.Month)
+OnSelect:
+    Set(varView, ThisItem.Base);
+    Set(varFilter, "For the board");
+    Set(varMonth, ThisItem.Month);
+    Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
+    Concurrent(
+        ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
+        ClearCollect(colPrev, Filter(Updates, Month = varPrev)),
+        ClearCollect(colFb,   Filter('Board Feedback', Month = varMonth))
+    );
+    Navigate(scrBase, ScreenTransition.None)
 ```
 
 **`recBrSep`** (in `galBarriers`)
