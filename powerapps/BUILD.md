@@ -139,8 +139,8 @@ Add one row per base with Title **Base-wide**, for asks that don't belong to a s
 
 ### 2d. Screens
 
-1. Left rail: **Tree view**. Click **+ New screen → Blank**, four times.
-2. Rename the five screens by double-clicking each name: `scrNetwork`, `scrBase`, `scrEdit`, `scrBarriers`, `scrFeedback`.
+1. Left rail: **Tree view**. Click **+ New screen → Blank**, five times.
+2. Rename the six screens by double-clicking each name: `scrNetwork`, `scrBase`, `scrEdit`, `scrInit`, `scrBarriers`, `scrFeedback`.
 3. Set each screen's **Fill** property to `cBg`.
 
 ### 2e. Adding a control and setting its position
@@ -912,6 +912,7 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `galFilters` | Gallery (horizontal, blank) | 20 | 174 | 660 | 36 | |
 | `btnFilter` | Button | 0 | 0 | 124 | 36 | `galFilters` |
 | `txtSearch` | Text input | 690 | 174 | 300 | 36 | |
+| `btnAddInit` | Button | 1000 | 174 | 156 | 36 | |
 | `btnFeedback` | Button | 1166 | 174 | 180 | 36 | |
 | `recListCard` | Rectangle | 20 | 220 | 1326 | 538 | |
 | `lblIStatus` | Label | 32 | 220 | 110 | 28 | |
@@ -1078,6 +1079,13 @@ Radius (all four): 18
 HintText: "Search initiatives and updates"
 Default: ""
 DelayOutput: true
+```
+
+**`btnAddInit`**
+
+```
+Text: "+ Add initiative"
+OnSelect: Navigate(scrInit, ScreenTransition.None)
 ```
 
 **`btnFeedback`**
@@ -1547,7 +1555,188 @@ OnSelect:
     )
 ```
 
-## 7. scrBarriers: Barriers
+## 7. scrInit: Add initiative
+
+![scrInit](scrInit.png)
+
+**Screen OnVisible**
+
+```
+Set(varNextNum, Coalesce(Max(Filter(Initiatives, Base = varView), ThisRecord.SortOrder), 0) + 1);
+Reset(txtNewTitle); Reset(txtNewGroup); Reset(txtNewDetail); Reset(txtNewKpi); Reset(txtNewBaseline)
+```
+
+| Control | Type | X | Y | W | H | Inside |
+|---|---|---|---|---|---|---|
+| `recInitCard` | Rectangle | 140 | 24 | 1086 | 720 | |
+| `recInitBar` | Rectangle | 140 | 24 | 1086 | 4 | |
+| `lblInitTitle` | Label | 168 | 44 | 1030 | 34 | |
+| `lblNewTitleHdr` | Label | 168 | 100 | 500 | 20 | |
+| `txtNewTitle` | Text input | 168 | 122 | 500 | 38 | |
+| `lblNewGroupHdr` | Label | 700 | 100 | 498 | 20 | |
+| `txtNewGroup` | Text input | 700 | 122 | 498 | 38 | |
+| `lblNewDetailHdr` | Label | 168 | 176 | 500 | 20 | |
+| `txtNewDetail` | Text input | 168 | 198 | 1030 | 150 | |
+| `lblNewKpiHdr` | Label | 168 | 364 | 500 | 20 | |
+| `txtNewKpi` | Text input | 168 | 386 | 500 | 90 | |
+| `lblNewBaselineHdr` | Label | 700 | 364 | 498 | 20 | |
+| `txtNewBaseline` | Text input | 700 | 386 | 498 | 90 | |
+| `lblNewKey` | Label | 168 | 698 | 600 | 38 | |
+| `btnNewCancel` | Button | 990 | 698 | 100 | 38 | |
+| `btnNewSave` | Button | 1098 | 698 | 100 | 38 | |
+
+### Properties
+
+**`recInitCard`**
+
+```
+Fill: Color.White
+BorderColor: cLine
+BorderThickness: 1
+```
+
+**`recInitBar`**
+
+```
+Fill: cOrange
+```
+
+**`lblInitTitle`**
+
+```
+Text: "Add initiative · " & varView & " · " & LookUp(colBases, Code = varView).Name
+Size: 18
+FontWeight: FontWeight.Bold
+```
+
+**`lblNewTitleHdr`**
+
+```
+Text: "Focus area (required)"
+Size: 9.5
+FontWeight: FontWeight.Semibold
+Color: cMuted
+```
+
+**`txtNewTitle`**
+
+```
+Default: ""
+HintText: "e.g. FIRST WAVE"
+```
+
+**`lblNewGroupHdr`**
+
+```
+Text: "Group"
+Size: 9.5
+FontWeight: FontWeight.Semibold
+Color: cMuted
+```
+
+**`txtNewGroup`**
+
+```
+Default: ""
+HintText: "e.g. Focus based on Deep Dive"
+```
+
+**`lblNewDetailHdr`**
+
+```
+Text: "Detail"
+Size: 9.5
+FontWeight: FontWeight.Semibold
+Color: cMuted
+```
+
+**`txtNewDetail`**
+
+```
+Mode: TextMode.MultiLine
+Default: ""
+HintText: "What the initiative is and what it should change"
+```
+
+**`lblNewKpiHdr`**
+
+```
+Text: "KPI to track"
+Size: 9.5
+FontWeight: FontWeight.Semibold
+Color: cMuted
+```
+
+**`txtNewKpi`**
+
+```
+Mode: TextMode.MultiLine
+Default: ""
+HintText: "e.g. DC-4"
+```
+
+**`lblNewBaselineHdr`**
+
+```
+Text: "S25 baseline"
+Size: 9.5
+FontWeight: FontWeight.Semibold
+Color: cMuted
+```
+
+**`txtNewBaseline`**
+
+```
+Mode: TextMode.MultiLine
+Default: ""
+HintText: "e.g. 0.55"
+```
+
+**`lblNewKey`**
+
+```
+Text: "Key: " & Lower(varView) & "-" & Text(varNextNum, "00") & " · shown last in " & varView
+Size: 9.5
+Color: cMuted
+```
+
+**`btnNewCancel`**
+
+```
+Text: "Cancel"
+OnSelect: Back()
+```
+
+**`btnNewSave`**
+
+```
+Text: "Add"
+Fill: cOrange
+Color: Color.White
+OnSelect:
+    If(IsBlank(Trim(txtNewTitle.Text)),
+        Notify("Give it a focus area", NotificationType.Warning),
+        IfError(
+            Patch(Initiatives, Defaults(Initiatives), {
+                Title: Trim(txtNewTitle.Text),
+                Key: Lower(varView) & "-" & Text(varNextNum, "00"),
+                Base: varView,
+                Group: txtNewGroup.Text,
+                Detail: txtNewDetail.Text,
+                KPI: txtNewKpi.Text,
+                Baseline: txtNewBaseline.Text,
+                SortOrder: varNextNum,
+                Active: true
+            });
+            ClearCollect(colInits, Filter(Initiatives, Active = true));
+            Notify("Initiative added", NotificationType.Success);
+            Back(),
+            Notify("Couldn't add: " & FirstError.Message, NotificationType.Error)
+        )
+    )
+```
+
+## 8. scrBarriers: Barriers
 
 ![scrBarriers](scrBarriers.png)
 
@@ -1871,7 +2060,7 @@ OnChange: Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BoardAction: Self.Te
 Fill: cLine
 ```
 
-## 8. scrFeedback: Board feedback (per base, per month)
+## 9. scrFeedback: Board feedback (per base, per month)
 
 ![scrFeedback](scrFeedback.png)
 
@@ -2008,12 +2197,14 @@ OnSelect:
     Notify("Feedback saved", NotificationType.Success)
 ```
 
-## 9. Before you go live
+## 10. Before you go live
 
 - **Test with two people:** both open the same update, one saves, then the other saves. The second should see the "… saved this update" warning, and a second click overwrites.
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
-- **Editing initiatives:** add, rename or retire them straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
+- **Adding initiatives:** on a base screen, **+ Add initiative**. The app sets Key, Base and order.
+- **Editing or retiring initiatives:** do it straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
+- **Barriers:** open an initiative's update and switch on **Flag for the board**. The ask appears on the Barriers screen. For an ask that isn't about one initiative, flag the base's **Base-wide** initiative.
 - **A new base:** add a line to `tBaseInfo` in App.Formulas, where you want it to sort. Then add its initiatives to the Initiatives list, with the code in Base.
 - **Retiring a base:** remove its line from `tBaseInfo` and set Active to No on its initiatives. Its history stays in the lists.
 - **FY28:** change `Date(2026, 9, 1)` in `tMonths`.
