@@ -82,6 +82,7 @@ Anything else in that column is an example of what goes in it. **You don't enter
 | Baseline | Multiple lines, plain text | S25 actuals |
 | SortOrder | Number | (not "Order", which SharePoint reserves) |
 | Active | Yes/No | Default **Yes** |
+| CompletedMonth | Single line of text | **Filled in by the app** when an update is saved as Complete, e.g. `2026-10`. From the next month the initiative drops off the list |
 
 Add one row per base with Title **Base-wide**, for asks that don't belong to a specific initiative. Key them `<base>-00`, e.g. `lgw-00`.
 
@@ -251,7 +252,9 @@ StatusStripe(s: Text): Color = Switch(s,
 Set(varMonth, If(IsBlank(LookUp(tMonths, Key = Text(Today(), "yyyy-mm"))), "2026-10", Text(Today(), "yyyy-mm")));
 Set(varView, "NETWORK");
 Set(varFilter, "All");
-ClearCollect(colInits, Filter(Initiatives, Active = true));
+ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
+// The initiatives that count this month: not completed in an earlier month.
+ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
 Set(varRegion, "All");
 // Every base in tBaseInfo, in its order.
 ClearCollect(colBases, tBaseInfo);
@@ -376,6 +379,7 @@ Value (right-hand pane): Label
 Default: MonthLabel(varMonth)
 OnChange:
     Set(varMonth, Self.Selected.Key);
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
     Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
     Concurrent(
         ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -966,6 +970,7 @@ Value (right-hand pane): Label
 Default: MonthLabel(varMonth)
 OnChange:
     Set(varMonth, Self.Selected.Key);
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
     Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
     Concurrent(
         ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -1563,6 +1568,11 @@ OnSelect:
                         BarrierStatus: {Value: If(tglBoard.Value && IsBlank(cur.BarrierStatus.Value), "Open", cur.BarrierStatus.Value)},
                         RaisedOn: If(tglBoard.Value && IsBlank(cur.RaisedOn), Today(), cur.RaisedOn)
                     });
+                    With({ini: LookUp(Initiatives, Key = varInit.Key)},
+                        If(varStatus = "Complete" || ini.CompletedMonth = varMonth,
+                            Patch(Initiatives, ini, {CompletedMonth: If(varStatus = "Complete", varMonth, "")})));
+                    ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
+                    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
                     ClearCollect(colUpd, Filter(Updates, Month = varMonth));
                     ClearCollect(colBar, Filter(Updates, ForBoard = true));
                     Set(varConflict, false);
@@ -1748,7 +1758,8 @@ OnSelect:
                 SortOrder: varNextNum,
                 Active: true
             });
-            ClearCollect(colInits, Filter(Initiatives, Active = true));
+            ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
+            ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
             Notify("Initiative added", NotificationType.Success);
             Back(),
             Notify("Couldn't add: " & FirstError.Message, NotificationType.Error)
@@ -1836,6 +1847,7 @@ Value (right-hand pane): Label
 Default: MonthLabel(varMonth)
 OnChange:
     Set(varMonth, Self.Selected.Key);
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
     Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
     Concurrent(
         ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -2030,7 +2042,7 @@ VerticalAlign: VerticalAlign.Top
 **`lblBrInit`** (in `galBarriers`)
 
 ```
-Text: LookUp(colInits, Key = ThisItem.InitiativeKey).Title & " · " & MonthLabel(ThisItem.Month)
+Text: LookUp(colInitsAll, Key = ThisItem.InitiativeKey).Title & " · " & MonthLabel(ThisItem.Month)
 Size: 9
 Color: cMuted
 ```
@@ -2085,6 +2097,7 @@ OnSelect:
     Set(varView, ThisItem.Base);
     Set(varFilter, "For the board");
     Set(varMonth, ThisItem.Month);
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || CompletedMonth >= varMonth));
     Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
     Concurrent(
         ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
@@ -2243,6 +2256,7 @@ OnSelect:
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
 - **Adding initiatives:** on a base screen, **+ Add initiative**. The app sets Key, Base and order.
+- **Completed initiatives:** saving an update as Complete records the month on the initiative. From the next month it leaves that base's list and counts. Switch back to that month to see it. To re-open it, change that month's status to something else.
 - **Editing or retiring initiatives:** do it straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
 - **Barriers:** open an initiative's update and switch on **Flag for the board**. The ask appears on the Barriers screen. For an ask that isn't about one initiative, flag the base's **Base-wide** initiative.
 - **A new base:** add a line to `tBaseInfo` in App.Formulas, where you want it to sort. Then add its initiatives to the Initiatives list, with the code in Base.
