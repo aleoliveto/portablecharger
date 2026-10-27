@@ -140,8 +140,8 @@ Add one row per base with Title **Base-wide**, for asks that don't belong to a s
 
 ### 2d. Screens
 
-1. Left rail: **Tree view**. Click **+ New screen → Blank**, five times.
-2. Rename the six screens by double-clicking each name: `scrNetwork`, `scrBase`, `scrEdit`, `scrInit`, `scrBarriers`, `scrFeedback`.
+1. Left rail: **Tree view**. Click **+ New screen → Blank**, four times.
+2. Rename the five screens by double-clicking each name: `scrNetwork`, `scrBase`, `scrEdit`, `scrBarriers`, `scrFeedback`.
 3. Set each screen's **Fill** property to `cBg`.
 
 ### 2e. Adding a control and setting its position
@@ -940,8 +940,7 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `galFilters` | Gallery (horizontal, blank) | 20 | 174 | 660 | 36 | |
 | `btnFilter` | Button | 0 | 0 | 124 | 36 | `galFilters` |
 | `txtSearch` | Text input | 690 | 174 | 300 | 36 | |
-| `btnAddInit` | Button | 1000 | 174 | 156 | 36 | |
-| `btnFeedback` | Button | 1166 | 174 | 180 | 36 | |
+| `btnFeedback` | Button | 1000 | 174 | 180 | 36 | |
 | `recListCard` | Rectangle | 20 | 220 | 1326 | 538 | |
 | `lblIStatus` | Label | 32 | 220 | 110 | 28 | |
 | `lblIInitiative` | Label | 152 | 220 | 380 | 28 | |
@@ -1094,7 +1093,8 @@ FontWeight: FontWeight.Bold
 ```
 Text:
     MonthLabel(varMonth) & " · " & CountRows(Filter(colUpd, Base = varView)) & " of " &
-    CountRows(Filter(colInits, Base = varView)) & " updated · " & CountIf(colUpd, Base = varView && ForBoard) & " for the board"
+    CountRows(Filter(colInits, Base = varView)) & " updated · " & CountIf(colUpd, Base = varView && ForBoard) & " for the board" &
+    With({sp: LookUp(colBases, Code = varView).Sponsor}, If(IsBlank(sp), "", " · OLT Sponsor: " & sp))
 Size: 10.5
 Color: cMuted
 ```
@@ -1127,13 +1127,6 @@ Radius (all four): 18
 HintText: "Search initiatives and updates"
 Default: ""
 DelayOutput: true
-```
-
-**`btnAddInit`**
-
-```
-Text: "+ Add initiative"
-OnSelect: Navigate(scrInit, ScreenTransition.None)
 ```
 
 **`btnFeedback`**
@@ -1355,7 +1348,8 @@ Reset(txtUpdate); Reset(txtKpiA); Reset(tglBoard); Reset(txtAsk)
 | `txtKpiA` | Text input | 500 | 504 | 220 | 38 | |
 | `tglBoard` | Toggle | 750 | 504 | 80 | 38 | |
 | `lblBoardLbl` | Label | 836 | 504 | 300 | 38 | |
-| `txtAsk` | Text input | 500 | 552 | 698 | 90 | |
+| `txtAsk` | Text input | 500 | 552 | 698 | 66 | |
+| `lblAskWarn` | Label | 500 | 620 | 698 | 22 | |
 | `lblConflict` | Label | 500 | 648 | 698 | 42 | |
 | `lblLastSaved` | Label | 168 | 698 | 600 | 38 | |
 | `btnCancel` | Button | 990 | 698 | 100 | 38 | |
@@ -1554,6 +1548,15 @@ Visible: tglBoard.Value
 HintText: "What's in the way and what you need from the board or central teams."
 ```
 
+**`lblAskWarn`**
+
+```
+Text: "Not for crew or operational planning requests (pairings, curfew) — use the existing tracker for those."
+Visible: tglBoard.Value
+Size: 9
+Color: cFaint
+```
+
 **`lblConflict`**
 
 ```
@@ -1628,189 +1631,7 @@ OnSelect:
     )
 ```
 
-## 7. scrInit: Add initiative
-
-![scrInit](scrInit.png)
-
-**Screen OnVisible**
-
-```
-Set(varNextNum, Coalesce(Max(Filter(Initiatives, Base = varView), ThisRecord.SortOrder), 0) + 1);
-Reset(txtNewTitle); Reset(txtNewGroup); Reset(txtNewDetail); Reset(txtNewKpi); Reset(txtNewBaseline)
-```
-
-| Control | Type | X | Y | W | H | Inside |
-|---|---|---|---|---|---|---|
-| `recInitCard` | Rectangle | 140 | 24 | 1086 | 720 | |
-| `recInitBar` | Rectangle | 140 | 24 | 1086 | 4 | |
-| `lblInitTitle` | Label | 168 | 44 | 1030 | 34 | |
-| `lblNewTitleHdr` | Label | 168 | 100 | 500 | 20 | |
-| `txtNewTitle` | Text input | 168 | 122 | 500 | 38 | |
-| `lblNewGroupHdr` | Label | 700 | 100 | 498 | 20 | |
-| `txtNewGroup` | Text input | 700 | 122 | 498 | 38 | |
-| `lblNewDetailHdr` | Label | 168 | 176 | 500 | 20 | |
-| `txtNewDetail` | Text input | 168 | 198 | 1030 | 150 | |
-| `lblNewKpiHdr` | Label | 168 | 364 | 500 | 20 | |
-| `txtNewKpi` | Text input | 168 | 386 | 500 | 90 | |
-| `lblNewBaselineHdr` | Label | 700 | 364 | 498 | 20 | |
-| `txtNewBaseline` | Text input | 700 | 386 | 498 | 90 | |
-| `lblNewKey` | Label | 168 | 698 | 600 | 38 | |
-| `btnNewCancel` | Button | 990 | 698 | 100 | 38 | |
-| `btnNewSave` | Button | 1098 | 698 | 100 | 38 | |
-
-### Properties
-
-**`recInitCard`**
-
-```
-Fill: Color.White
-BorderColor: cLine
-BorderThickness: 1
-```
-
-**`recInitBar`**
-
-```
-Fill: cOrange
-```
-
-**`lblInitTitle`**
-
-```
-Text: "Add initiative · " & varView & " · " & LookUp(colBases, Code = varView).Name
-Size: 18
-FontWeight: FontWeight.Bold
-```
-
-**`lblNewTitleHdr`**
-
-```
-Text: "Focus area (required)"
-Size: 9.5
-FontWeight: FontWeight.Semibold
-Color: cMuted
-```
-
-**`txtNewTitle`**
-
-```
-Default: ""
-HintText: "e.g. FIRST WAVE"
-```
-
-**`lblNewGroupHdr`**
-
-```
-Text: "Group"
-Size: 9.5
-FontWeight: FontWeight.Semibold
-Color: cMuted
-```
-
-**`txtNewGroup`**
-
-```
-Default: ""
-HintText: "e.g. Focus based on Deep Dive"
-```
-
-**`lblNewDetailHdr`**
-
-```
-Text: "Detail"
-Size: 9.5
-FontWeight: FontWeight.Semibold
-Color: cMuted
-```
-
-**`txtNewDetail`**
-
-```
-Mode: TextMode.MultiLine
-Default: ""
-HintText: "What the initiative is and what it should change"
-```
-
-**`lblNewKpiHdr`**
-
-```
-Text: "KPI to track"
-Size: 9.5
-FontWeight: FontWeight.Semibold
-Color: cMuted
-```
-
-**`txtNewKpi`**
-
-```
-Mode: TextMode.MultiLine
-Default: ""
-HintText: "e.g. DC-4"
-```
-
-**`lblNewBaselineHdr`**
-
-```
-Text: "S25 baseline"
-Size: 9.5
-FontWeight: FontWeight.Semibold
-Color: cMuted
-```
-
-**`txtNewBaseline`**
-
-```
-Mode: TextMode.MultiLine
-Default: ""
-HintText: "e.g. 0.55"
-```
-
-**`lblNewKey`**
-
-```
-Text: "Key: " & Lower(varView) & "-" & Text(varNextNum, "00") & " · shown last in " & varView
-Size: 9.5
-Color: cMuted
-```
-
-**`btnNewCancel`**
-
-```
-Text: "Cancel"
-OnSelect: Back()
-```
-
-**`btnNewSave`**
-
-```
-Text: "Add"
-Fill: cOrange
-Color: Color.White
-OnSelect:
-    If(IsBlank(Trim(txtNewTitle.Text)),
-        Notify("Give it a focus area", NotificationType.Warning),
-        IfError(
-            Patch(Initiatives, Defaults(Initiatives), {
-                Title: Trim(txtNewTitle.Text),
-                Key: Lower(varView) & "-" & Text(varNextNum, "00"),
-                Base: varView,
-                Group: txtNewGroup.Text,
-                Detail: txtNewDetail.Text,
-                KPI: txtNewKpi.Text,
-                Baseline: txtNewBaseline.Text,
-                SortOrder: varNextNum,
-                Active: true
-            });
-            ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
-            ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
-            Notify("Initiative added", NotificationType.Success);
-            Back(),
-            Notify("Couldn't add: " & FirstError.Message, NotificationType.Error)
-        )
-    )
-```
-
-## 8. scrBarriers: Barriers
+## 7. scrBarriers: Barriers
 
 ![scrBarriers](scrBarriers.png)
 
@@ -2191,7 +2012,7 @@ OnSelect:
 Fill: cLine
 ```
 
-## 9. scrFeedback: Board feedback (per base, per month)
+## 8. scrFeedback: Board feedback (per base, per month)
 
 ![scrFeedback](scrFeedback.png)
 
@@ -2331,14 +2152,15 @@ OnSelect:
     )
 ```
 
-## 10. Before you go live
+## 9. Before you go live
 
 - **Test with two people:** both open the same update, one saves, then the other saves. The second should see the "… saved this update" warning, and a second click overwrites.
 - **Test with a view-only account:** every save now fails with "Couldn't save: you may not have edit access, or you're offline." instead of a raw SharePoint error — confirm that message is clear enough, rather than the buttons being hidden up front. Hiding them proactively needs either a maintained list of editor emails in App.Formulas (quick, but drifts out of sync with the SharePoint group) or a small Power Automate flow that checks real SharePoint permissions. Neither is built; say if you want one and I'll add it.
 - **Refresh:** the small ⟳ icon in the header (next to the name, top right on every screen) reloads this month's updates, feedback and barriers without reopening the app. Use it mid-meeting if someone else has just saved.
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
-- **Adding initiatives:** on a base screen, **+ Add initiative**. The app sets Key, Base and order.
+- **Adding Focus Areas (initiatives):** the Terms of Reference give the Board, not base teams, decision rights on adding or removing a Focus Area ("D: BIG Board. No other changes to Focus Areas will be permitted"), so there is no self-service "Add initiative" button in the app. Add them directly in the Initiatives list (grid view), the same place you edit or retire one. If you'd rather base teams could *propose* one in-app for the Board to approve, say so and I'll add a gated version back in.
+- **OLT Sponsor per base:** `tBaseInfo` in App.Formulas needs a `Sponsor` field on every row (blank `""` until you have names), e.g. `{Code: "LGW", Name: "London Gatwick", Region: "UK", R: 1, Sponsor: ""}` — add it to every row, not just one, or the lookup on the base screen errors. Once filled in, it shows on the base screen next to "for the board".
 - **Completed initiatives:** saving an update as Complete records the month on the initiative. From the next month it leaves that base's list and counts. Switch back to that month to see it. To re-open it, change that month's status to something else.
 - **Editing or retiring initiatives:** do it straight in the Initiatives list (grid view). Set Active to No to retire one. Its past updates stay.
 - **Barriers:** open an initiative's update and switch on **Flag for the board**. The ask appears on the Barriers screen. For an ask that isn't about one initiative, flag the base's **Base-wide** initiative.
