@@ -293,6 +293,7 @@ Set(varView, "NETWORK")
 | `lblBrand` | Label | 20 | 0 | 160 | 56 | |
 | `lblFY` | Label | 180 | 0 | 260 | 56 | |
 | `ddMonth` | Drop down | 1000 | 10 | 170 | 36 | |
+| `btnRefresh` | Icon (Refresh) | 1140 | 16 | 24 | 24 | |
 | `lblUser` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine` | Rectangle | 0 | 99 | 1366 | 1 | |
@@ -387,6 +388,25 @@ OnChange:
         ClearCollect(colFb,   Filter('Board Feedback', Month = varMonth)),
         ClearCollect(colBar,  Filter(Updates, ForBoard = true))
     )
+```
+
+**`btnRefresh`**
+
+```
+Icon: Icon.Refresh
+Color: Color.White
+Tooltip: "Refresh"
+OnSelect:
+    ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
+    Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
+    Concurrent(
+        ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
+        ClearCollect(colPrev, Filter(Updates, Month = varPrev)),
+        ClearCollect(colFb,   Filter('Board Feedback', Month = varMonth)),
+        ClearCollect(colBar,  Filter(Updates, ForBoard = true))
+    );
+    Notify("Refreshed", NotificationType.Success)
 ```
 
 **`lblUser`**
@@ -886,18 +906,21 @@ Text: "Save notes"
 Fill: cOrange
 Color: Color.White
 OnSelect:
-    With({r: LookUp('Board Feedback', Title = "NET_" & varMonth)},
-        Patch('Board Feedback', If(IsBlank(r), Defaults('Board Feedback'), r),
-            {Title: "NET_" & varMonth, Base: "NET", Month: varMonth, Notes: txtNotes.Text}));
-    ClearCollect(colFb, Filter('Board Feedback', Month = varMonth));
-    Notify("Notes saved", NotificationType.Success)
+    IfError(
+        With({r: LookUp('Board Feedback', Title = "NET_" & varMonth)},
+            Patch('Board Feedback', If(IsBlank(r), Defaults('Board Feedback'), r),
+                {Title: "NET_" & varMonth, Base: "NET", Month: varMonth, Notes: txtNotes.Text}));
+        ClearCollect(colFb, Filter('Board Feedback', Month = varMonth));
+        Notify("Notes saved", NotificationType.Success),
+        Notify("Couldn't save: you may not have edit access, or you're offline.", NotificationType.Error)
+    )
 ```
 
 ## 5. scrBase: Base (one screen for every base)
 
 ![scrBase](scrBase.png)
 
-The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those eight controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
+The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those nine controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
 
 | Control | Type | X | Y | W | H | Inside |
 |---|---|---|---|---|---|---|
@@ -905,6 +928,7 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `lblBrand_1` | Label | 20 | 0 | 160 | 56 | |
 | `lblFY_1` | Label | 180 | 0 | 260 | 56 | |
 | `ddMonth_1` | Drop down | 1000 | 10 | 170 | 36 | |
+| `btnRefresh_1` | Icon (Refresh) | 1140 | 16 | 24 | 24 | |
 | `lblUser_1` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav_1` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine_1` | Rectangle | 0 | 99 | 1366 | 1 | |
@@ -978,6 +1002,25 @@ OnChange:
         ClearCollect(colFb,   Filter('Board Feedback', Month = varMonth)),
         ClearCollect(colBar,  Filter(Updates, ForBoard = true))
     )
+```
+
+**`btnRefresh_1`**
+
+```
+Icon: Icon.Refresh
+Color: Color.White
+Tooltip: "Refresh"
+OnSelect:
+    ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
+    Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
+    Concurrent(
+        ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
+        ClearCollect(colPrev, Filter(Updates, Month = varPrev)),
+        ClearCollect(colFb,   Filter('Board Feedback', Month = varMonth)),
+        ClearCollect(colBar,  Filter(Updates, ForBoard = true))
+    );
+    Notify("Refreshed", NotificationType.Success)
 ```
 
 **`lblUser_1`**
@@ -1777,7 +1820,7 @@ OnSelect:
 Set(varView, "BARRIERS")
 ```
 
-The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those eight controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
+The header and tab bar (everything named `…_1` / `…_2`) are a copy of the ones on scrNetwork. Select those nine controls on scrNetwork, copy, and paste them here. Power Apps adds the suffix and keeps positions.
 
 | Control | Type | X | Y | W | H | Inside |
 |---|---|---|---|---|---|---|
@@ -1785,6 +1828,7 @@ The header and tab bar (everything named `…_1` / `…_2`) are a copy of the on
 | `lblBrand_2` | Label | 20 | 0 | 160 | 56 | |
 | `lblFY_2` | Label | 180 | 0 | 260 | 56 | |
 | `ddMonth_2` | Drop down | 1000 | 10 | 170 | 36 | |
+| `btnRefresh_2` | Icon (Refresh) | 1140 | 16 | 24 | 24 | |
 | `lblUser_2` | Label | 1180 | 0 | 166 | 56 | |
 | `recNav_2` | Rectangle | 0 | 56 | 1366 | 44 | |
 | `recNavLine_2` | Rectangle | 0 | 99 | 1366 | 1 | |
@@ -1855,6 +1899,25 @@ OnChange:
         ClearCollect(colFb,   Filter('Board Feedback', Month = varMonth)),
         ClearCollect(colBar,  Filter(Updates, ForBoard = true))
     )
+```
+
+**`btnRefresh_2`**
+
+```
+Icon: Icon.Refresh
+Color: Color.White
+Tooltip: "Refresh"
+OnSelect:
+    ClearCollect(colInitsAll, Filter(Initiatives, Active = true));
+    ClearCollect(colInits, Filter(colInitsAll, IsBlank(CompletedMonth) || Value(Substitute(CompletedMonth, "-", "")) >= Value(Substitute(varMonth, "-", ""))));
+    Set(varPrev, Text(DateAdd(Date(Value(Left(varMonth, 4)), Value(Right(varMonth, 2)), 1), -1, TimeUnit.Months), "yyyy-mm"));
+    Concurrent(
+        ClearCollect(colUpd,  Filter(Updates, Month = varMonth)),
+        ClearCollect(colPrev, Filter(Updates, Month = varPrev)),
+        ClearCollect(colFb,   Filter('Board Feedback', Month = varMonth)),
+        ClearCollect(colBar,  Filter(Updates, ForBoard = true))
+    );
+    Notify("Refreshed", NotificationType.Success)
 ```
 
 **`lblUser_2`**
@@ -2068,7 +2131,12 @@ FontWeight: FontWeight.Semibold
 ```
 Items: ["Open", "With the board", "Resolved"]
 Default: Coalesce(ThisItem.BarrierStatus.Value, "Open")
-OnChange: Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BarrierStatus: {Value: Self.Selected.Value}}))
+OnChange:
+    IfError(
+        Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BarrierStatus: {Value: Self.Selected.Value}})),
+        Notify("Couldn't save: you may not have edit access, or you're offline.", NotificationType.Error);
+        Reset(Self)
+    )
 ```
 
 **`txtBrOwner`** (in `galBarriers`)
@@ -2076,7 +2144,12 @@ OnChange: Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BarrierStatus: {Valu
 ```
 Default: ThisItem.BarrierOwner
 HintText: "Who"
-OnChange: Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BarrierOwner: Self.Text}))
+OnChange:
+    IfError(
+        Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BarrierOwner: Self.Text})),
+        Notify("Couldn't save: you may not have edit access, or you're offline.", NotificationType.Error);
+        Reset(Self)
+    )
 ```
 
 **`txtBrAction`** (in `galBarriers`)
@@ -2084,7 +2157,12 @@ OnChange: Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BarrierOwner: Self.T
 ```
 Default: ThisItem.BoardAction
 HintText: "What the board will do"
-OnChange: Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BoardAction: Self.Text}))
+OnChange:
+    IfError(
+        Patch(colBar, ThisItem, Patch(Updates, ThisItem, {BoardAction: Self.Text})),
+        Notify("Couldn't save: you may not have edit access, or you're offline.", NotificationType.Error);
+        Reset(Self)
+    )
 ```
 
 **`icoBrOpen`** (in `galBarriers`)
@@ -2243,16 +2321,21 @@ Text: "Save feedback"
 Fill: cOrange
 Color: Color.White
 OnSelect:
-    Set(varFb, Patch('Board Feedback', If(IsBlank(varFb), Defaults('Board Feedback'), varFb), {
-        Title: varView & "_" & varMonth, Base: varView, Month: varMonth,
-        Working: txtWorking.Text, Focus: txtFocus.Text, Actions: txtActions.Text}));
-    ClearCollect(colFb, Filter('Board Feedback', Month = varMonth));
-    Notify("Feedback saved", NotificationType.Success)
+    IfError(
+        Set(varFb, Patch('Board Feedback', If(IsBlank(varFb), Defaults('Board Feedback'), varFb), {
+            Title: varView & "_" & varMonth, Base: varView, Month: varMonth,
+            Working: txtWorking.Text, Focus: txtFocus.Text, Actions: txtActions.Text}));
+        ClearCollect(colFb, Filter('Board Feedback', Month = varMonth));
+        Notify("Feedback saved", NotificationType.Success),
+        Notify("Couldn't save: you may not have edit access, or you're offline.", NotificationType.Error)
+    )
 ```
 
 ## 10. Before you go live
 
 - **Test with two people:** both open the same update, one saves, then the other saves. The second should see the "… saved this update" warning, and a second click overwrites.
+- **Test with a view-only account:** every save now fails with "Couldn't save: you may not have edit access, or you're offline." instead of a raw SharePoint error — confirm that message is clear enough, rather than the buttons being hidden up front. Hiding them proactively needs either a maintained list of editor emails in App.Formulas (quick, but drifts out of sync with the SharePoint group) or a small Power Automate flow that checks real SharePoint permissions. Neither is built; say if you want one and I'll add it.
+- **Refresh:** the small ⟳ icon in the header (next to the name, top right on every screen) reloads this month's updates, feedback and barriers without reopening the app. Use it mid-meeting if someone else has just saved.
 - **Check delegation:** if Power Apps shows a blue underline (delegation warning) on any `Filter(Updates, …)`, check that the column in the filter is indexed in SharePoint.
 - **Large lists:** the formulas only send `=` filters on Month, ForBoard and Title to SharePoint. Everything else (search, the filter buttons) runs on the month already loaded, so it stays fast however many months pile up.
 - **Adding initiatives:** on a base screen, **+ Add initiative**. The app sets Key, Base and order.
